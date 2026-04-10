@@ -1,5 +1,8 @@
 {
   "name": "NewsHub Extensions",
+  "iconUrl": "https://avatars.githubusercontent.com/u/270819710",
   "description": "Official extension repository for NewsHub",
-  "baseUrl": "https://raw.githubusercontent.com/komicaviewer/extensions/main"
+  "baseUrl": "https://raw.githubusercontent.com/komicaviewer/extensions/main",
+  "website": "https://github.com/komicaviewer/extensions",
+  "signingKeyFingerprint": "d24f37dfa75c39a72a8f7e3c1887321619d75f35c37d600f935db5103f63bab8"
 }
