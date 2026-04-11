@@ -1,13 +1,20 @@
 [
   {
     "pkg": "tw.kevinzhang.extension.gamer",
-    "name": "tw.kevinzhang.extension.gamer",
+    "name": "Gamer 巴哈姆特",
     "versionCode": 1,
-    "versionName": "1.0",
-    "lang": "",
-    "apkName": "14.apk",
+    "versionName": "0.0.1",
+    "lang": "zh-TW",
+    "apkName": "newshub-gamer-v0.0.1.apk",
     "iconName": "tw.kevinzhang.extension.gamer.png",
-    "sha256": "4458bf224be537d5f8e7b6274bb71089e03e288bcaf0d1aa57d611158b59a3de",
-    "sources": []
+    "sha256": "552e174d569e10283e2e263e28645f13e12474bb2ad23589a019f0448f7829bb",
+    "sources": [
+      {
+        "id": "tw.kevinzhang.gamer",
+        "name": "Gamer 巴哈姆特",
+        "lang": "zh-TW",
+        "baseUrl": "https://forum.gamer.com.tw"
+      }
+    ]
   }
 ]
