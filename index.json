@@ -7,7 +7,7 @@
     "lang": "zh-TW",
     "apkName": "newshub-gamer-v0.0.1.apk",
     "iconName": "tw.kevinzhang.newshub.extension.gamer.png",
-    "sha256": "ca84011c5572889539530a1c321143fe26b25ad4a4a68ad6a2294044ac2beab1",
+    "sha256": "2271c2932e64b86a1bcf9b87694c53e4fd6e9db4850ef271c1e1f22a7baf3554",
     "sources": [
       {
         "id": "tw.kevinzhang.newshub.extension.gamer",
@@ -25,7 +25,7 @@
     "lang": "zh-TW",
     "apkName": "newshub-komica2-v0.0.1.apk",
     "iconName": "tw.kevinzhang.newshub.extension.komica2.png",
-    "sha256": "d00deb1d5c2fbf13bfe79d8774e019f7ef320bf7dfb9ffed74514b05f36f22ae",
+    "sha256": "27e9dfef630b81b285b4d97b4cb3481a1fdaf3a8f07339827fcd3170d871773b",
     "sources": [
       {
         "id": "tw.kevinzhang.komica2",
@@ -43,7 +43,7 @@
     "lang": "zh-TW",
     "apkName": "newshub-site2cat-v0.0.1.apk",
     "iconName": "tw.kevinzhang.newshub.extension.site2cat.png",
-    "sha256": "70a780795a0c5b1f95f6e83ad7c7813a1affe25266124548906dfcda3bfff870",
+    "sha256": "e85202792a675a138470e8d62cfb35a6ecfdb03f379098885d05d3e68470ff40",
     "sources": [
       {
         "id": "tw.kevinzhang.site2cat",
@@ -61,7 +61,7 @@
     "lang": "zh-TW",
     "apkName": "newshub-sora-v0.0.1.apk",
     "iconName": "tw.kevinzhang.newshub.extension.sora.png",
-    "sha256": "281333bd93cdf7fdf362a82707ab700828fbd50b22c6b43ac82bb0b47d7ebee4",
+    "sha256": "c5145eb4a30ee862830738baac9071aaba0f5af4f06da5e8b7d0ec419a4eefe9",
     "sources": [
       {
         "id": "tw.kevinzhang.komica-sora",
