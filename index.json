@@ -7,13 +7,67 @@
     "lang": "zh-TW",
     "apkName": "newshub-gamer-v0.0.1.apk",
     "iconName": "tw.kevinzhang.newshub.extension.gamer.png",
-    "sha256": "97a9bef8432a77a0ea0e6875a94d953b5aa24ed0ec984564822898bdda1f2dc7",
+    "sha256": "ca84011c5572889539530a1c321143fe26b25ad4a4a68ad6a2294044ac2beab1",
     "sources": [
       {
         "id": "tw.kevinzhang.newshub.extension.gamer",
         "name": "Gamer 巴哈姆特",
         "lang": "zh-TW",
         "baseUrl": "https://forum.gamer.com.tw"
+      }
+    ]
+  },
+  {
+    "pkg": "tw.kevinzhang.newshub.extension.komica2",
+    "name": "NewsHub: Komica2",
+    "versionCode": 1,
+    "versionName": "0.0.1",
+    "lang": "zh-TW",
+    "apkName": "newshub-komica2-v0.0.1.apk",
+    "iconName": "tw.kevinzhang.newshub.extension.komica2.png",
+    "sha256": "d00deb1d5c2fbf13bfe79d8774e019f7ef320bf7dfb9ffed74514b05f36f22ae",
+    "sources": [
+      {
+        "id": "tw.kevinzhang.komica2",
+        "name": "komica2",
+        "lang": "zh-TW",
+        "baseUrl": "https://komica1.org"
+      }
+    ]
+  },
+  {
+    "pkg": "tw.kevinzhang.newshub.extension.site2cat",
+    "name": "NewsHub: 2cat",
+    "versionCode": 1,
+    "versionName": "0.0.1",
+    "lang": "zh-TW",
+    "apkName": "newshub-site2cat-v0.0.1.apk",
+    "iconName": "tw.kevinzhang.newshub.extension.site2cat.png",
+    "sha256": "70a780795a0c5b1f95f6e83ad7c7813a1affe25266124548906dfcda3bfff870",
+    "sources": [
+      {
+        "id": "tw.kevinzhang.site2cat",
+        "name": "2cat",
+        "lang": "zh-TW",
+        "baseUrl": "https://2cat.uk"
+      }
+    ]
+  },
+  {
+    "pkg": "tw.kevinzhang.newshub.extension.sora",
+    "name": "NewsHub: Sora Komica",
+    "versionCode": 1,
+    "versionName": "0.0.1",
+    "lang": "zh-TW",
+    "apkName": "newshub-sora-v0.0.1.apk",
+    "iconName": "tw.kevinzhang.newshub.extension.sora.png",
+    "sha256": "281333bd93cdf7fdf362a82707ab700828fbd50b22c6b43ac82bb0b47d7ebee4",
+    "sources": [
+      {
+        "id": "tw.kevinzhang.komica-sora",
+        "name": "Sora Komica",
+        "lang": "zh-TW",
+        "baseUrl": "https://komica1.org"
       }
     ]
   }
