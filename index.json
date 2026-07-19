@@ -36,6 +36,24 @@
     ]
   },
   {
+    "pkg": "tw.kevinzhang.newshub.extension.komica2_twocat",
+    "name": "NewsHub: komica2 twocat",
+    "versionCode": 1,
+    "versionName": "0.0.1",
+    "lang": "zh-TW",
+    "apkName": "newshub-komica2-twocat-v0.0.1.apk",
+    "iconName": "tw.kevinzhang.newshub.extension.komica2_twocat.png",
+    "sha256": "8e4264e28c428711e6e548499e43aeda562fb7fe6ffa64cfa31294c7a0288f0b",
+    "sources": [
+      {
+        "id": "tw.kevinzhang.komica2_twocat",
+        "name": "komica2 twocat",
+        "lang": "zh-TW",
+        "baseUrl": "https://2cat.org"
+      }
+    ]
+  },
+  {
     "pkg": "tw.kevinzhang.newshub.extension.sora",
     "name": "NewsHub: Sora Komica",
     "versionCode": 1,
@@ -50,6 +68,24 @@
         "name": "Sora Komica",
         "lang": "zh-TW",
         "baseUrl": "https://komica1.org"
+      }
+    ]
+  },
+  {
+    "pkg": "tw.kevinzhang.newshub.extension.twocat",
+    "name": "NewsHub: twocat",
+    "versionCode": 2,
+    "versionName": "0.0.2",
+    "lang": "zh-TW",
+    "apkName": "newshub-twocat-v0.0.2.apk",
+    "iconName": "tw.kevinzhang.newshub.extension.twocat.png",
+    "sha256": "72e1280ecbed6390f42503494f443004e7d51f06bc9806bd6c3edc9746e72e9a",
+    "sources": [
+      {
+        "id": "tw.kevinzhang.twocat",
+        "name": "twocat",
+        "lang": "zh-TW",
+        "baseUrl": "https://2cat.uk"
       }
     ]
   }
