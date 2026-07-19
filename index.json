@@ -18,24 +18,6 @@
     ]
   },
   {
-    "pkg": "tw.kevinzhang.newshub.extension.komica2",
-    "name": "NewsHub: Komica2",
-    "versionCode": 1,
-    "versionName": "0.0.1",
-    "lang": "zh-TW",
-    "apkName": "newshub-komica2-v0.0.1.apk",
-    "iconName": "tw.kevinzhang.newshub.extension.komica2.png",
-    "sha256": "cefd1868106a2c337bcafbf3fbf810791b5257c1fe66d1437a72fade8a9a4381",
-    "sources": [
-      {
-        "id": "tw.kevinzhang.komica2",
-        "name": "komica2",
-        "lang": "zh-TW",
-        "baseUrl": "https://komica1.org"
-      }
-    ]
-  },
-  {
     "pkg": "tw.kevinzhang.newshub.extension.komica2_twocat",
     "name": "NewsHub: komica2 twocat",
     "versionCode": 1,
