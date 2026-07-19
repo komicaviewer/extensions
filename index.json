@@ -36,24 +36,6 @@
     ]
   },
   {
-    "pkg": "tw.kevinzhang.newshub.extension.site2cat",
-    "name": "NewsHub: 2cat",
-    "versionCode": 1,
-    "versionName": "0.0.1",
-    "lang": "zh-TW",
-    "apkName": "newshub-site2cat-v0.0.1.apk",
-    "iconName": "tw.kevinzhang.newshub.extension.site2cat.png",
-    "sha256": "e7cc2ab6df249390be79fd152da4f444e98a4f91087b6ac4c697982cf4830dda",
-    "sources": [
-      {
-        "id": "tw.kevinzhang.site2cat",
-        "name": "2cat",
-        "lang": "zh-TW",
-        "baseUrl": "https://2cat.uk"
-      }
-    ]
-  },
-  {
     "pkg": "tw.kevinzhang.newshub.extension.sora",
     "name": "NewsHub: Sora Komica",
     "versionCode": 1,
