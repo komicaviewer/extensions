@@ -1,124 +1,22 @@
 [
   {
-    "pkg": "tw.kevinzhang.newshub.extension.akraft",
-    "name": "NewsHub: Akraft",
-    "versionCode": 1,
-    "versionName": "0.0.1",
-    "lang": "zh-TW",
-    "apkName": "newshub-akraft-v0.0.1.apk",
-    "iconName": "tw.kevinzhang.newshub.extension.akraft.png",
-    "sha256": "c09b6ec87b99ab13c4c2305fa3f684196e1c89acf81e78857afec0aee6817891",
-    "sources": [
-      {
-        "id": "tw.kevinzhang.akraft",
-        "name": "Akraft",
-        "lang": "zh-TW",
-        "baseUrl": "https://www.akraft.net"
-      }
-    ]
-  },
-  {
-    "pkg": "tw.kevinzhang.newshub.extension.gamer",
-    "name": "NewsHub: Gamer 巴哈姆特",
+    "pkg": "tw.kevinzhang.newshub.extension.komica",
+    "name": "NewsHub: Komica",
     "versionCode": 2,
-    "versionName": "0.0.2",
+    "versionName": "0.2.0",
     "lang": "zh-TW",
-    "apkName": "newshub-gamer-v0.0.2.apk",
-    "iconName": "tw.kevinzhang.newshub.extension.gamer.png",
-    "sha256": "57e0c518288dcfccbc3b87957efa3c671673d1a9f1bde701df5dfdaed05279fa",
+    "apkName": "newshub-komica-v0.2.0.apk",
+    "iconName": "tw.kevinzhang.newshub.extension.komica.png",
+    "sha256": "df98f5058dffbbcd02ce4711dc38d78f1c6b56e71f3ce24a91c1979d5c133300",
     "sources": [
       {
-        "id": "tw.kevinzhang.newshub.extension.gamer",
-        "name": "Gamer 巴哈姆特",
-        "lang": "zh-TW",
-        "baseUrl": "https://forum.gamer.com.tw"
-      }
-    ]
-  },
-  {
-    "pkg": "tw.kevinzhang.newshub.extension.komica2_sora",
-    "name": "NewsHub: Komica2 Sora",
-    "versionCode": 2,
-    "versionName": "0.0.2",
-    "lang": "zh-TW",
-    "apkName": "newshub-komica2-sora-v0.0.2.apk",
-    "iconName": "tw.kevinzhang.newshub.extension.komica2_sora.png",
-    "sha256": "31f359a87ba1d30f600518367d4bbda84c2e2f22ac1a4f07e6bfd53f28546b1f",
-    "sources": [
-      {
-        "id": "tw.kevinzhang.komica2_sora",
-        "name": "komica2 Sora",
-        "lang": "zh-TW",
-        "baseUrl": "https://komica1.org"
-      }
-    ]
-  },
-  {
-    "pkg": "tw.kevinzhang.newshub.extension.komica2_twocat",
-    "name": "NewsHub: komica2 twocat",
-    "versionCode": 1,
-    "versionName": "0.0.1",
-    "lang": "zh-TW",
-    "apkName": "newshub-komica2-twocat-v0.0.1.apk",
-    "iconName": "tw.kevinzhang.newshub.extension.komica2_twocat.png",
-    "sha256": "dbaa3fdd562202ed4d3daf8ec6f108ba03319638352b7c315b84f43c08cf5917",
-    "sources": [
-      {
-        "id": "tw.kevinzhang.komica2_twocat",
-        "name": "komica2 twocat",
+        "id": "tw.kevinzhang.komica.twocat",
+        "name": "Twocat",
         "lang": "zh-TW",
         "baseUrl": "https://2cat.org"
-      }
-    ]
-  },
-  {
-    "pkg": "tw.kevinzhang.newshub.extension.komica2_zawarudo",
-    "name": "NewsHub: Komica2 Zawarudo",
-    "versionCode": 1,
-    "versionName": "0.0.1",
-    "lang": "zh-TW",
-    "apkName": "newshub-komica2-zawarudo-v0.0.1.apk",
-    "iconName": "tw.kevinzhang.newshub.extension.komica2_zawarudo.png",
-    "sha256": "ca5b6c9baeffa6f2bb6ae2d947d13792fd044ad5a54b7886a7dfb66a2c85cea5",
-    "sources": [
+      },
       {
-        "id": "tw.kevinzhang.komica2-zawarudo",
-        "name": "Komica2 Zawarudo",
-        "lang": "zh-TW",
-        "baseUrl": "https://majeur.zawarudo.org"
-      }
-    ]
-  },
-  {
-    "pkg": "tw.kevinzhang.newshub.extension.nagatoyuki",
-    "name": "NewsHub: Nagatoyuki",
-    "versionCode": 1,
-    "versionName": "0.0.1",
-    "lang": "zh-TW",
-    "apkName": "newshub-nagatoyuki-v0.0.1.apk",
-    "iconName": "tw.kevinzhang.newshub.extension.nagatoyuki.png",
-    "sha256": "daa6d27b116195ec7e074539af4f825f87842c2c30c1495175ce311e62bf53fc",
-    "sources": [
-      {
-        "id": "tw.kevinzhang.nagatoyuki",
-        "name": "Nagatoyuki",
-        "lang": "zh-TW",
-        "baseUrl": "https://eclair.nagatoyuki.org"
-      }
-    ]
-  },
-  {
-    "pkg": "tw.kevinzhang.newshub.extension.sora",
-    "name": "NewsHub: Sora",
-    "versionCode": 2,
-    "versionName": "0.0.2",
-    "lang": "zh-TW",
-    "apkName": "newshub-sora-v0.0.2.apk",
-    "iconName": "tw.kevinzhang.newshub.extension.sora.png",
-    "sha256": "3c127eaf786ceb91abb0d5120fe51cc346fc6af44d4281e082bed018f403b017",
-    "sources": [
-      {
-        "id": "tw.kevinzhang.komica-sora",
+        "id": "tw.kevinzhang.komica.sora",
         "name": "Sora",
         "lang": "zh-TW",
         "baseUrl": "https://komica1.org"
@@ -126,38 +24,32 @@
     ]
   },
   {
-    "pkg": "tw.kevinzhang.newshub.extension.twocat",
-    "name": "NewsHub: twocat",
+    "pkg": "tw.kevinzhang.newshub.extension.komica2",
+    "name": "NewsHub: Komica2",
     "versionCode": 2,
-    "versionName": "0.0.2",
+    "versionName": "0.2.0",
     "lang": "zh-TW",
-    "apkName": "newshub-twocat-v0.0.2.apk",
-    "iconName": "tw.kevinzhang.newshub.extension.twocat.png",
-    "sha256": "b7f95ffdc2061a987a4eddee50d5626236df6c9ef1e2a02a9a0e9c4fb6497751",
+    "apkName": "newshub-komica2-v0.2.0.apk",
+    "iconName": "tw.kevinzhang.newshub.extension.komica2.png",
+    "sha256": "4060c84f0a10a138a47d739c5718ff0dc1bbd67af05047aa328b84dabf8d7389",
     "sources": [
       {
-        "id": "tw.kevinzhang.twocat",
-        "name": "twocat",
+        "id": "tw.kevinzhang.komica2.twocat",
+        "name": "Komica2 Twocat",
         "lang": "zh-TW",
-        "baseUrl": "https://2cat.uk"
-      }
-    ]
-  },
-  {
-    "pkg": "tw.kevinzhang.newshub.extension.wtako",
-    "name": "NewsHub: Wtako",
-    "versionCode": 1,
-    "versionName": "0.0.1",
-    "lang": "zh-TW",
-    "apkName": "newshub-wtako-v0.0.1.apk",
-    "iconName": "tw.kevinzhang.newshub.extension.wtako.png",
-    "sha256": "cfbdf4efdebafb96c44a69aa20d951087129724207a448618a1296b911803921",
-    "sources": [
+        "baseUrl": "https://2cat.org"
+      },
       {
-        "id": "tw.kevinzhang.wtako",
-        "name": "Wtako",
+        "id": "tw.kevinzhang.komica2.sora",
+        "name": "Komica2 Sora",
         "lang": "zh-TW",
-        "baseUrl": "https://kemono.wtako.net"
+        "baseUrl": "https://komica1.org"
+      },
+      {
+        "id": "tw.kevinzhang.komica2.zawarudo",
+        "name": "Komica2 Zawarudo",
+        "lang": "zh-TW",
+        "baseUrl": "https://majeur.zawarudo.org"
       }
     ]
   }
