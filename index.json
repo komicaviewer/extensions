@@ -1,13 +1,31 @@
 [
   {
+    "pkg": "tw.kevinzhang.newshub.extension.gamer",
+    "name": "NewsHub: Gamer 巴哈姆特",
+    "versionCode": 3,
+    "versionName": "0.0.3",
+    "lang": "zh-TW",
+    "apkName": "newshub-gamer-v0.0.3.apk",
+    "iconName": "tw.kevinzhang.newshub.extension.gamer.png",
+    "sha256": "06337fd323705a4a9ad40ca1ff30825956745fc2c647076f68d02584395f80ce",
+    "sources": [
+      {
+        "id": "tw.kevinzhang.newshub.extension.gamer",
+        "name": "Gamer 巴哈姆特",
+        "lang": "zh-TW",
+        "baseUrl": "https://forum.gamer.com.tw"
+      }
+    ]
+  },
+  {
     "pkg": "tw.kevinzhang.newshub.extension.komica",
     "name": "NewsHub: Komica",
-    "versionCode": 2,
-    "versionName": "0.2.0",
+    "versionCode": 3,
+    "versionName": "0.3.0",
     "lang": "zh-TW",
-    "apkName": "newshub-komica-v0.2.0.apk",
+    "apkName": "newshub-komica-v0.3.0.apk",
     "iconName": "tw.kevinzhang.newshub.extension.komica.png",
-    "sha256": "df98f5058dffbbcd02ce4711dc38d78f1c6b56e71f3ce24a91c1979d5c133300",
+    "sha256": "41d91996084740c9d82e6136972dad6adaaed8c7b51a4ba5006d960e00e74039",
     "sources": [
       {
         "id": "tw.kevinzhang.komica.twocat",
@@ -20,18 +38,36 @@
         "name": "Sora",
         "lang": "zh-TW",
         "baseUrl": "https://komica1.org"
+      },
+      {
+        "id": "tw.kevinzhang.akraft",
+        "name": "Akraft",
+        "lang": "zh-TW",
+        "baseUrl": "https://www.akraft.net"
+      },
+      {
+        "id": "tw.kevinzhang.nagatoyuki",
+        "name": "Nagatoyuki",
+        "lang": "zh-TW",
+        "baseUrl": "https://eclair.nagatoyuki.org"
+      },
+      {
+        "id": "tw.kevinzhang.wtako",
+        "name": "Wtako",
+        "lang": "zh-TW",
+        "baseUrl": "https://kemono.wtako.net"
       }
     ]
   },
   {
     "pkg": "tw.kevinzhang.newshub.extension.komica2",
     "name": "NewsHub: Komica2",
-    "versionCode": 2,
-    "versionName": "0.2.0",
+    "versionCode": 4,
+    "versionName": "0.4.0",
     "lang": "zh-TW",
-    "apkName": "newshub-komica2-v0.2.0.apk",
+    "apkName": "newshub-komica2-v0.4.0.apk",
     "iconName": "tw.kevinzhang.newshub.extension.komica2.png",
-    "sha256": "4060c84f0a10a138a47d739c5718ff0dc1bbd67af05047aa328b84dabf8d7389",
+    "sha256": "94c6ba2af45450ae0cdeb2d8ee498560c600ccfecb2bfeca4dcf6e7dd906268e",
     "sources": [
       {
         "id": "tw.kevinzhang.komica2.twocat",
