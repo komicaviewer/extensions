@@ -1,0 +1,98 @@
+name: Post-publish verification
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: post-publish-main
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: verify
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout published commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: temurin
+
+      - name: Install Android verification tools
+        shell: bash
+        run: |
+          set -euo pipefail
+          yes | "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" "build-tools;34.0.0" >/dev/null 2>&1 || true
+          echo "AAPT=$ANDROID_SDK_ROOT/build-tools/34.0.0/aapt" >> "$GITHUB_ENV"
+          echo "APKSIGNER=$ANDROID_SDK_ROOT/build-tools/34.0.0/apksigner" >> "$GITHUB_ENV"
+
+      - name: Validate complete local distribution tree
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          AAPT="$AAPT" APKSIGNER="$APKSIGNER" bash policy/run-admission.sh . .
+          {
+            echo '### Local distribution verification'
+            echo
+            echo "- Status: **passed**"
+            echo "- Commit: \`$GITHUB_SHA\`"
+            echo '- Contract: exact 3 APK / 9 Sources, indexes, files, signer, registry, versions'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Confirm remote main ref
+        shell: bash
+        run: |
+          set -euo pipefail
+          remote_sha=$(git ls-remote "https://github.com/${GITHUB_REPOSITORY}.git" refs/heads/main | awk '{print $1}')
+          test -n "$remote_sha"
+          if [[ "$remote_sha" != "$GITHUB_SHA" ]]; then
+            echo "Remote main moved or was not published: expected=$GITHUB_SHA actual=$remote_sha" >&2
+            exit 1
+          fi
+          {
+            echo
+            echo '### Git ref verification'
+            echo
+            echo "- Status: **passed**"
+            echo "- origin/main: \`$remote_sha\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Verify raw main publication
+        env:
+          PYTHONDONTWRITEBYTECODE: '1'
+        run: |
+          python3 policy/raw_publish_verify.py \
+            --local-root . \
+            --raw-base "https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/main" \
+            --sha "$GITHUB_SHA" \
+            --attempts 6 \
+            --delay-seconds 10 \
+            --report "$RUNNER_TEMP/post-publish-report.md"
+
+      - name: Publish verification summary
+        if: always()
+        shell: bash
+        run: |
+          if [[ -f "$RUNNER_TEMP/post-publish-report.md" ]]; then
+            cat "$RUNNER_TEMP/post-publish-report.md" >> "$GITHUB_STEP_SUMMARY"
+          else
+            {
+              echo
+              echo '### Raw distribution verification'
+              echo
+              echo '- Status: **not reached**'
+              echo "- Commit: \`$GITHUB_SHA\`"
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi

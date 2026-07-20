@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "expectedReleaseCount": 3,
+  "expectedSourceCount": 9,
+  "allowedPackageRemovals": [],
+  "releases": {
+    "tw.kevinzhang.newshub.extension.gamer": {
+      "module": "gamer",
+      "name": "NewsHub: Gamer 巴哈姆特",
+      "iconName": "tw.kevinzhang.newshub.extension.gamer.png",
+      "sourceIds": [
+        "tw.kevinzhang.newshub.extension.gamer"
+      ]
+    },
+    "tw.kevinzhang.newshub.extension.komica": {
+      "module": "komica",
+      "name": "NewsHub: Komica",
+      "iconName": "tw.kevinzhang.newshub.extension.komica.png",
+      "sourceIds": [
+        "tw.kevinzhang.akraft",
+        "tw.kevinzhang.komica.sora",
+        "tw.kevinzhang.komica.twocat",
+        "tw.kevinzhang.nagatoyuki",
+        "tw.kevinzhang.wtako"
+      ]
+    },
+    "tw.kevinzhang.newshub.extension.komica2": {
+      "module": "komica2",
+      "name": "NewsHub: Komica2",
+      "iconName": "tw.kevinzhang.newshub.extension.komica2.png",
+      "sourceIds": [
+        "tw.kevinzhang.komica2.sora",
+        "tw.kevinzhang.komica2.twocat",
+        "tw.kevinzhang.komica2.zawarudo"
+      ]
+    }
+  }
+}
