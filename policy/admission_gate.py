@@ -130,6 +130,29 @@ def validate_source_list(sources, label: str, require_class_name: bool) -> dict[
     return by_id
 
 
+def validate_registry_contract(registry: dict, package: str) -> None:
+    schema_version = registry.get("schemaVersion")
+    require(
+        isinstance(schema_version, int) and not isinstance(schema_version, bool),
+        f"registry schemaVersion must be an integer for {package}",
+    )
+
+    if schema_version == 1 and "requiredApiVersion" not in registry:
+        required_api_version = 1
+    else:
+        required_api_version = registry.get("requiredApiVersion")
+        require(
+            isinstance(required_api_version, int) and not isinstance(required_api_version, bool),
+            f"registry requiredApiVersion must be an integer for {package}",
+        )
+
+    require(
+        (schema_version, required_api_version) in {(1, 1), (2, 2)},
+        f"unsupported registry schema/API contract for {package}: "
+        f"schemaVersion={schema_version}, requiredApiVersion={required_api_version}",
+    )
+
+
 def validate_icon(icon: Path) -> None:
     require(icon.stat().st_size <= MAX_ICON_BYTES, f"icon exceeds size limit: {icon.name}")
     with icon.open("rb") as file:
@@ -271,7 +294,7 @@ def validate_distribution(candidate: Path, base: Path, policy_root: Path, aapt: 
 
         index_sources = validate_source_list(entry.get("sources"), f"index {package}", False)
         registry, dex_bytes = read_apk_registry_and_dex(apk)
-        require(registry.get("schemaVersion") == 1, f"unsupported registry schemaVersion for {package}")
+        validate_registry_contract(registry, package)
         require(registry.get("name") == entry["name"], f"registry name mismatch for {package}")
         registry_sources = validate_source_list(registry.get("sources"), f"registry {package}", True)
         expected_ids = set(expected["sourceIds"])

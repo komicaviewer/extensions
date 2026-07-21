@@ -48,7 +48,7 @@ jobs:
             echo
             echo "- Status: **passed**"
             echo "- Commit: \`$GITHUB_SHA\`"
-            echo '- Contract: exact 3 APK / 9 Sources, indexes, files, signer, registry, versions'
+            echo '- Contract: exact 7 APK / 13 Sources, indexes, files, signer, registry, versions'
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Confirm remote main ref
