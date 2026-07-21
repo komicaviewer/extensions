@@ -17,9 +17,13 @@ POLICY_ROOT = Path(__file__).resolve().parent
 CATALOG = json.loads((POLICY_ROOT / "admission_policy.json").read_text(encoding="utf-8"))
 FINGERPRINT = "3df4717435423d5ba7adfed43a22a6e18bbeadc8d509d0bea94d82c7b0f2998d"
 VERSIONS = {
-    "gamer": (3, "0.0.3"),
-    "komica": (3, "0.3.0"),
-    "komica2": (4, "0.4.0"),
+    "eyny": (1, "0.1.0"),
+    "gamer": (4, "0.0.4"),
+    "hackernews": (1, "0.1.0"),
+    "komica": (4, "0.3.1"),
+    "komica2": (5, "0.4.1"),
+    "mobile01": (2, "0.1.1"),
+    "ptt": (3, "0.3.0"),
 }
 
 
@@ -68,12 +72,16 @@ class AdmissionGateTest(unittest.TestCase):
             f"""#!{sys.executable}
 import os, re, sys
 packages = {{
+    'eyny': 'tw.kevinzhang.newshub.extension.eyny',
     'gamer': 'tw.kevinzhang.newshub.extension.gamer',
+    'hackernews': 'tw.kevinzhang.newshub.extension.hackernews',
     'komica': 'tw.kevinzhang.newshub.extension.komica',
     'komica2': 'tw.kevinzhang.newshub.extension.komica2',
+    'mobile01': 'tw.kevinzhang.newshub.extension.mobile01',
+    'ptt': 'tw.kevinzhang.newshub.extension.ptt',
 }}
-versions = {{'gamer': 3, 'komica': 3, 'komica2': 4}}
-match = re.fullmatch(r'newshub-(gamer|komica|komica2)-v(.+)\\.apk', os.path.basename(sys.argv[-1]))
+versions = {{'eyny': 1, 'gamer': 4, 'hackernews': 1, 'komica': 4, 'komica2': 5, 'mobile01': 2, 'ptt': 3}}
+match = re.fullmatch(r'newshub-(eyny|gamer|hackernews|komica|komica2|mobile01|ptt)-v(.+)\\.apk', os.path.basename(sys.argv[-1]))
 module, version_name = match.groups()
 package = packages[module] + ('.wrong' if {wrong_literal} and module == 'gamer' else '')
 print(f"package: name='{{package}}' versionCode='{{versions[module]}}' versionName='{{version_name}}'")
@@ -104,11 +112,20 @@ print('Signer #1 certificate SHA-256 digest: {fingerprint}')
         apk_name = f"newshub-{release['module']}-v{version_name}.apk"
         apk_path = self.candidate / "apk" / apk_name
         sources = [self.registry_source(source_id) for source_id in release["sourceIds"]]
-        registry = registry or {
-            "schemaVersion": 1,
-            "name": release["name"],
-            "sources": sources,
-        }
+        registry = registry or (
+            {
+                "schemaVersion": 2,
+                "requiredApiVersion": 2,
+                "name": release["name"],
+                "sources": sources,
+            }
+            if release["module"] in {"gamer", "ptt"}
+            else {
+                "schemaVersion": 1,
+                "name": release["name"],
+                "sources": sources,
+            }
+        )
         class_markers = b"\n".join(
             source["className"].replace(".", "/").encode("utf-8")
             for source in registry["sources"]
@@ -156,7 +173,7 @@ print('Signer #1 certificate SHA-256 digest: {fingerprint}')
             apksigner or self.apksigner,
         )
 
-    def test_accepts_exact_three_apk_nine_source_distribution(self):
+    def test_accepts_exact_seven_apk_thirteen_source_distribution(self):
         self.validate()
 
     def test_rejects_missing_gamer(self):
@@ -197,7 +214,7 @@ print('Signer #1 certificate SHA-256 digest: {fingerprint}')
     def test_rejects_version_downgrade(self):
         gamer = "tw.kevinzhang.newshub.extension.gamer"
         base_index = copy.deepcopy(self.entries)
-        next(entry for entry in base_index if entry["pkg"] == gamer)["versionCode"] = 4
+        next(entry for entry in base_index if entry["pkg"] == gamer)["versionCode"] = 5
         self.write_json(self.base / "index.json", base_index)
         with self.assertRaisesRegex(AdmissionError, "versionCode downgrade"):
             self.validate()
@@ -240,6 +257,65 @@ print('Signer #1 certificate SHA-256 digest: {fingerprint}')
         self.entry(package)["sha256"] = hashlib.sha256(apk_path.read_bytes()).hexdigest()
         self.write_candidate_indexes()
         with self.assertRaisesRegex(AdmissionError, "registry Source class missing from DEX"):
+            self.validate()
+
+    def test_rejects_future_registry_schema(self):
+        package = "tw.kevinzhang.newshub.extension.gamer"
+        release = CATALOG["releases"][package]
+        registry = {
+            "schemaVersion": 3,
+            "requiredApiVersion": 3,
+            "name": release["name"],
+            "sources": [self.registry_source(source_id) for source_id in release["sourceIds"]],
+        }
+        _, apk_path, _, _, _ = self.write_apk(package, registry=registry)
+        self.entry(package)["sha256"] = hashlib.sha256(apk_path.read_bytes()).hexdigest()
+        self.write_candidate_indexes()
+        with self.assertRaisesRegex(AdmissionError, "unsupported registry schema/API contract"):
+            self.validate()
+
+    def test_rejects_registry_schema_one_with_api_two(self):
+        package = "tw.kevinzhang.newshub.extension.gamer"
+        release = CATALOG["releases"][package]
+        registry = {
+            "schemaVersion": 1,
+            "requiredApiVersion": 2,
+            "name": release["name"],
+            "sources": [self.registry_source(source_id) for source_id in release["sourceIds"]],
+        }
+        _, apk_path, _, _, _ = self.write_apk(package, registry=registry)
+        self.entry(package)["sha256"] = hashlib.sha256(apk_path.read_bytes()).hexdigest()
+        self.write_candidate_indexes()
+        with self.assertRaisesRegex(AdmissionError, "unsupported registry schema/API contract"):
+            self.validate()
+
+    def test_rejects_registry_schema_two_without_api_version(self):
+        package = "tw.kevinzhang.newshub.extension.ptt"
+        release = CATALOG["releases"][package]
+        registry = {
+            "schemaVersion": 2,
+            "name": release["name"],
+            "sources": [self.registry_source(source_id) for source_id in release["sourceIds"]],
+        }
+        _, apk_path, _, _, _ = self.write_apk(package, registry=registry)
+        self.entry(package)["sha256"] = hashlib.sha256(apk_path.read_bytes()).hexdigest()
+        self.write_candidate_indexes()
+        with self.assertRaisesRegex(AdmissionError, "registry requiredApiVersion must be an integer"):
+            self.validate()
+
+    def test_rejects_non_integer_registry_contract_versions(self):
+        package = "tw.kevinzhang.newshub.extension.ptt"
+        release = CATALOG["releases"][package]
+        registry = {
+            "schemaVersion": True,
+            "requiredApiVersion": 2.0,
+            "name": release["name"],
+            "sources": [self.registry_source(source_id) for source_id in release["sourceIds"]],
+        }
+        _, apk_path, _, _, _ = self.write_apk(package, registry=registry)
+        self.entry(package)["sha256"] = hashlib.sha256(apk_path.read_bytes()).hexdigest()
+        self.write_candidate_indexes()
+        with self.assertRaisesRegex(AdmissionError, "registry schemaVersion must be an integer"):
             self.validate()
 
     def test_rejects_candidate_repo_trust_anchor_change(self):

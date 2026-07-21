@@ -11,8 +11,8 @@ mode and symlink changes, so a release PR cannot smuggle workflow, policy, metad
 or documentation changes into the destination branch.
 
 The base `repo.json` `signingKeyFingerprint` is the APK signing trust anchor, so
-the admission check needs no signing secret. The policy verifies the exact three
-APK / nine Source catalog, both indexes, every APK and PNG, APK SHA-256, package,
+the admission check needs no signing secret. The policy verifies the exact seven
+APK / thirteen Source catalog, both indexes, every APK and PNG, APK SHA-256, package,
 version, registry metadata, registry class presence in DEX, and signing certificate.
 It also rejects version downgrades, same-version APK replacements, and package
 deletions not pre-authorized by the base admission policy.

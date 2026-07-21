@@ -63,7 +63,7 @@ builds a complete release candidate and opens a pull request in this repository.
 It never pushes `main` directly.
 
 The destination-owned `Distribution admission / verify` check reads candidate
-APKs as untrusted data and requires the exact three-APK/nine-Source contract,
+APKs as untrusted data and requires the exact seven-APK/thirteen-Source contract,
 matching indexes, files, hashes, versions, registries, signing certificate, and
 Source classes. Branch protection admits the pull request only after that check
 passes. A separate push check then verifies the published `main` ref and raw
