@@ -14,14 +14,13 @@ import zipfile
 from pathlib import Path
 
 
-REGISTRY_ASSET = "assets/newshub-extension.json"
+LEGACY_REGISTRY_ASSET = "assets/newshub-extension.json"
 APK_NAME_PATTERN = re.compile(r"^newshub-([a-z0-9_-]+)-v(.+)\.apk$")
 PACKAGE_PATTERN = re.compile(r"^[a-zA-Z][a-zA-Z0-9_]*(?:\.[a-zA-Z][a-zA-Z0-9_]*)+$")
 SHA256_PATTERN = re.compile(r"^[0-9a-f]{64}$")
 REQUIRED_SOURCE_FIELDS = ("id", "name", "lang", "baseUrl")
 MAX_APK_BYTES = 100 * 1024 * 1024
 MAX_ICON_BYTES = 10 * 1024 * 1024
-MAX_REGISTRY_BYTES = 1024 * 1024
 MAX_DEX_BYTES = 200 * 1024 * 1024
 
 
@@ -52,7 +51,7 @@ def safe_child(root: Path, filename: str, label: str) -> Path:
 
 def normalized_fingerprint(value: str) -> str:
     normalized = re.sub(r"[\s:]", "", value).lower()
-    require(SHA256_PATTERN.fullmatch(normalized) is not None, "invalid signingKeyFingerprint")
+    require(SHA256_PATTERN.fullmatch(normalized) is not None, "invalid SHA-256 signer fingerprint")
     return normalized
 
 
@@ -84,73 +83,48 @@ def apk_badging(apk: Path, aapt: str) -> tuple[str, int, str]:
     return match.group(1), int(match.group(2)), match.group(3)
 
 
-def apk_signing_fingerprint(apk: Path, apksigner: str) -> str:
+def apk_signing_fingerprints(apk: Path, apksigner: str) -> set[str]:
     output = run_tool(
         [apksigner, "verify", "--verbose", "--print-certs", str(apk)],
         f"apksigner for {apk.name}",
     )
-    match = re.search(r"^Signer #1 certificate SHA-256 digest: (.+)$", output, re.MULTILINE)
-    require(match is not None, f"apksigner returned no SHA-256 certificate for {apk.name}")
-    return normalized_fingerprint(match.group(1))
+    matches = re.findall(r"^Signer #\d+ certificate SHA-256 digest: (.+)$", output, re.MULTILINE)
+    require(bool(matches), f"apksigner returned no SHA-256 certificate for {apk.name}")
+    return {normalized_fingerprint(match) for match in matches}
 
 
-def read_apk_registry_and_dex(apk: Path) -> tuple[dict, bytes]:
+def inspect_apk_payload(apk: Path) -> None:
     require(apk.stat().st_size <= MAX_APK_BYTES, f"APK exceeds size limit: {apk.name}")
     try:
         with zipfile.ZipFile(apk) as archive:
-            registry_info = archive.getinfo(REGISTRY_ASSET)
-            require(registry_info.file_size <= MAX_REGISTRY_BYTES, f"registry too large: {apk.name}")
-            registry = json.loads(archive.read(registry_info).decode("utf-8"))
+            names = {item.filename for item in archive.infolist()}
+            require(
+                LEGACY_REGISTRY_ASSET not in names,
+                f"APK contains forbidden legacy registry {LEGACY_REGISTRY_ASSET}: {apk.name}",
+            )
             dex_infos = [item for item in archive.infolist() if re.fullmatch(r"classes\d*\.dex", item.filename)]
             require(bool(dex_infos), f"APK contains no classes.dex: {apk.name}")
             dex_size = sum(item.file_size for item in dex_infos)
             require(dex_size <= MAX_DEX_BYTES, f"DEX payload exceeds size limit: {apk.name}")
-            dex_bytes = b"".join(archive.read(item) for item in dex_infos)
-    except (KeyError, OSError, UnicodeDecodeError, json.JSONDecodeError, zipfile.BadZipFile) as error:
-        raise AdmissionError(f"invalid APK registry for {apk.name}: {error}") from error
-    require(isinstance(registry, dict), f"registry root must be an object: {apk.name}")
-    return registry, dex_bytes
+    except (OSError, zipfile.BadZipFile) as error:
+        raise AdmissionError(f"invalid APK payload for {apk.name}: {error}") from error
 
 
-def validate_source_list(sources, label: str, require_class_name: bool) -> dict[str, dict]:
+def validate_source_list(sources, label: str) -> dict[str, dict]:
     require(isinstance(sources, list) and sources, f"{label} sources must be a non-empty array")
     by_id = {}
     for source in sources:
         require(isinstance(source, dict), f"{label} source must be an object")
         for field in REQUIRED_SOURCE_FIELDS:
             require(isinstance(source.get(field), str) and source[field].strip(), f"{label} source {field} missing")
-        if require_class_name:
-            require(
-                isinstance(source.get("className"), str) and source["className"].strip(),
-                f"{label} source className missing",
-            )
+        require(
+            set(source) == set(REQUIRED_SOURCE_FIELDS),
+            f"{label} source fields must be exactly {REQUIRED_SOURCE_FIELDS}: {source['id']}",
+        )
         require(source["id"] not in by_id, f"duplicate Source id in {label}: {source['id']}")
         require(source["baseUrl"].startswith("https://"), f"Source baseUrl must use HTTPS: {source['id']}")
         by_id[source["id"]] = source
     return by_id
-
-
-def validate_registry_contract(registry: dict, package: str) -> None:
-    schema_version = registry.get("schemaVersion")
-    require(
-        isinstance(schema_version, int) and not isinstance(schema_version, bool),
-        f"registry schemaVersion must be an integer for {package}",
-    )
-
-    if schema_version == 1 and "requiredApiVersion" not in registry:
-        required_api_version = 1
-    else:
-        required_api_version = registry.get("requiredApiVersion")
-        require(
-            isinstance(required_api_version, int) and not isinstance(required_api_version, bool),
-            f"registry requiredApiVersion must be an integer for {package}",
-        )
-
-    require(
-        (schema_version, required_api_version) in {(1, 1), (2, 2)},
-        f"unsupported registry schema/API contract for {package}: "
-        f"schemaVersion={schema_version}, requiredApiVersion={required_api_version}",
-    )
 
 
 def validate_icon(icon: Path) -> None:
@@ -216,17 +190,31 @@ def validate_distribution(candidate: Path, base: Path, policy_root: Path, aapt: 
     policy_root = policy_root.resolve()
 
     catalog = load_json(policy_root / "admission_policy.json", "admission policy")
-    require(catalog.get("schemaVersion") == 1, "unsupported release catalog schemaVersion")
+    require(catalog.get("schemaVersion") == 2, "unsupported release catalog schemaVersion")
     releases = catalog.get("releases")
     require(isinstance(releases, dict) and releases, "release catalog must define releases")
     require(len(releases) == catalog.get("expectedReleaseCount"), "release catalog count is inconsistent")
 
+    policy_sources_by_package = {}
+    signer_pins_by_package = {}
+    for package, release in releases.items():
+        policy_sources_by_package[package] = validate_source_list(
+            release.get("sources"),
+            f"admission policy {package}",
+        )
+        pins = release.get("signerPins")
+        require(isinstance(pins, list), f"signerPins must be an array for {package}")
+        require(bool(pins), f"production signer pins are unprovisioned for {package}")
+        normalized_pins = {normalized_fingerprint(pin) for pin in pins if isinstance(pin, str)}
+        require(len(normalized_pins) == len(pins), f"invalid or duplicate signerPins for {package}")
+        signer_pins_by_package[package] = normalized_pins
+
     expected_source_ids = {
         source_id
-        for release in releases.values()
-        for source_id in release.get("sourceIds", [])
+        for sources in policy_sources_by_package.values()
+        for source_id in sources
     }
-    source_id_count = sum(len(release.get("sourceIds", [])) for release in releases.values())
+    source_id_count = sum(len(sources) for sources in policy_sources_by_package.values())
     require(len(expected_source_ids) == source_id_count, "release catalog contains duplicate Source ids")
     require(source_id_count == catalog.get("expectedSourceCount"), "release catalog Source count is inconsistent")
 
@@ -235,8 +223,6 @@ def validate_distribution(candidate: Path, base: Path, policy_root: Path, aapt: 
     candidate_repo = load_json(candidate / "repo.json", "candidate repo.json")
     base_repo = load_json(base / "repo.json", "base repo.json")
     require(candidate_repo == base_repo, "repo.json changes are not authorized by the current base policy")
-    trusted_fingerprint = normalized_fingerprint(base_repo.get("signingKeyFingerprint", ""))
-
     index = load_index(candidate / "index.json", "candidate index.json")
     min_index = load_index(candidate / "index.min.json", "candidate index.min.json")
     require(index == min_index, "index.json and index.min.json are not semantically equivalent")
@@ -290,26 +276,28 @@ def validate_distribution(candidate: Path, base: Path, policy_root: Path, aapt: 
         require(actual_package == package, f"APK package mismatch for {package}: {actual_package}")
         require(actual_version_code == entry["versionCode"], f"APK versionCode mismatch for {package}")
         require(actual_version_name == entry["versionName"], f"APK versionName mismatch for {package}")
-        require(apk_signing_fingerprint(apk, apksigner) == trusted_fingerprint, f"APK signer mismatch for {package}")
+        actual_signers = apk_signing_fingerprints(apk, apksigner)
+        require(
+            actual_signers.issubset(signer_pins_by_package[package]),
+            f"APK signer mismatch for {package}: {sorted(actual_signers)}",
+        )
 
-        index_sources = validate_source_list(entry.get("sources"), f"index {package}", False)
-        registry, dex_bytes = read_apk_registry_and_dex(apk)
-        validate_registry_contract(registry, package)
-        require(registry.get("name") == entry["name"], f"registry name mismatch for {package}")
-        registry_sources = validate_source_list(registry.get("sources"), f"registry {package}", True)
-        expected_ids = set(expected["sourceIds"])
+        index_sources = validate_source_list(entry.get("sources"), f"index {package}")
+        inspect_apk_payload(apk)
+        expected_sources = policy_sources_by_package[package]
+        expected_ids = set(expected_sources)
         require(set(index_sources) == expected_ids, f"unexpected index Source set for {package}")
-        require(set(registry_sources) == expected_ids, f"unexpected registry Source set for {package}")
 
         for source_id in expected_ids:
             require(source_id not in seen_source_ids, f"Source belongs to multiple APKs: {source_id}")
             seen_source_ids.add(source_id)
             index_source = index_sources[source_id]
-            registry_source = registry_sources[source_id]
+            expected_source = expected_sources[source_id]
             for field in REQUIRED_SOURCE_FIELDS:
-                require(index_source[field] == registry_source[field], f"Source {field} mismatch: {source_id}")
-            class_marker = registry_source["className"].replace(".", "/").encode("utf-8")
-            require(class_marker in dex_bytes, f"registry Source class missing from DEX: {registry_source['className']}")
+                require(
+                    index_source[field] == expected_source[field],
+                    f"Source {field} differs from destination policy: {source_id}",
+                )
 
         languages = {source["lang"] for source in index_sources.values()}
         expected_lang = next(iter(languages)) if len(languages) == 1 else ""
@@ -326,7 +314,7 @@ def validate_distribution(candidate: Path, base: Path, policy_root: Path, aapt: 
     require(seen_source_ids == expected_source_ids, "candidate Source set is incomplete")
     print(
         "Distribution admission passed: "
-        f"APKs={len(entries)}, Sources={len(seen_source_ids)}, signer={trusted_fingerprint}",
+        f"APKs={len(entries)}, Sources={len(seen_source_ids)}, signerPolicy=per-package",
     )
 
 

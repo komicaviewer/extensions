@@ -10,12 +10,26 @@ Candidate changes are allowlisted to `index.json`, `index.min.json`, `apk/*`, an
 mode and symlink changes, so a release PR cannot smuggle workflow, policy, metadata,
 or documentation changes into the destination branch.
 
-The base `repo.json` `signingKeyFingerprint` is the APK signing trust anchor, so
-the admission check needs no signing secret. The policy verifies the exact seven
-APK / thirteen Source catalog, both indexes, every APK and PNG, APK SHA-256, package,
-version, registry metadata, registry class presence in DEX, and signing certificate.
-It also rejects version downgrades, same-version APK replacements, and package
-deletions not pre-authorized by the base admission policy.
+The base `policy/admission_policy.json` is the only admission trust anchor. It owns
+the exact metadata for every Source and a separate `signerPins` allowlist for every
+package. `repo.json.signingKeyFingerprint` is distribution metadata for legacy
+clients; the gate deliberately does not use that global value to authorize any APK.
+
+The production policy is intentionally **unprovisioned and fail-closed** while its
+seven `signerPins` arrays are empty. A maintainer must obtain each package's approved
+SHA-256 signing-certificate fingerprint through the controlled key-provisioning
+process and pin it under that package before any release can pass. Unit tests inject
+fixture-only pins into a temporary policy; fixture pins must never be copied into the
+production policy.
+
+The policy verifies the exact seven APK / thirteen Source catalog, both indexes,
+every APK and PNG, APK SHA-256, package, version, exact destination-owned Source
+metadata, package-specific signing certificates, and the presence and bounded size
+of DEX payloads. APKs containing the legacy
+`assets/newshub-extension.json` registry are rejected: candidate-owned registry
+metadata is not an authority and is not used by admission. The gate also rejects
+version downgrades, same-version APK replacements, and package deletions not
+pre-authorized by the base admission policy.
 
 ## Bootstrap and repository settings
 
@@ -42,10 +56,11 @@ indexes and every referenced APK/icon with the local commit and always emits a
 GitHub Step Summary. It is intentionally a push check, not the PR required check,
 and there is no scheduled workflow.
 
-Key rotation or an intentional package removal is a two-step policy operation.
+Signer provisioning, key rotation, Source metadata changes, or an intentional
+package removal are two-step policy operations.
 The admission check deliberately rejects policy changes in release candidate PRs,
 so a maintainer must first use a controlled maintenance window to update the base
 policy (temporarily adjusting the ruleset if necessary), restore the ruleset, and
 only then submit the distribution PR. The publishing identity must never receive
 that maintenance bypass. A candidate distribution PR therefore cannot authorize
-its own signer or deletion.
+its own signer, Source identity/metadata, or deletion.

@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "expectedReleaseCount": 7,
   "expectedSourceCount": 13,
   "allowedPackageRemovals": [],
@@ -8,62 +8,134 @@
       "module": "eyny",
       "name": "NewsHub: EYNY 伊莉討論區",
       "iconName": "tw.kevinzhang.newshub.extension.eyny.png",
-      "sourceIds": [
-        "tw.kevinzhang.eyny"
+      "signerPins": [],
+      "sources": [
+        {
+          "id": "tw.kevinzhang.eyny",
+          "name": "EYNY 伊莉討論區",
+          "lang": "zh-TW",
+          "baseUrl": "https://eyny.com"
+        }
       ]
     },
     "tw.kevinzhang.newshub.extension.gamer": {
       "module": "gamer",
       "name": "NewsHub: Gamer 巴哈姆特",
       "iconName": "tw.kevinzhang.newshub.extension.gamer.png",
-      "sourceIds": [
-        "tw.kevinzhang.newshub.extension.gamer"
+      "signerPins": [],
+      "sources": [
+        {
+          "id": "tw.kevinzhang.newshub.extension.gamer",
+          "name": "Gamer 巴哈姆特",
+          "lang": "zh-TW",
+          "baseUrl": "https://forum.gamer.com.tw"
+        }
       ]
     },
     "tw.kevinzhang.newshub.extension.hackernews": {
       "module": "hackernews",
       "name": "NewsHub: Hacker News",
       "iconName": "tw.kevinzhang.newshub.extension.hackernews.png",
-      "sourceIds": [
-        "tw.kevinzhang.newshub.extension.hackernews"
+      "signerPins": [],
+      "sources": [
+        {
+          "id": "tw.kevinzhang.newshub.extension.hackernews",
+          "name": "Hacker News",
+          "lang": "en",
+          "baseUrl": "https://news.ycombinator.com"
+        }
       ]
     },
     "tw.kevinzhang.newshub.extension.komica": {
       "module": "komica",
       "name": "NewsHub: Komica",
       "iconName": "tw.kevinzhang.newshub.extension.komica.png",
-      "sourceIds": [
-        "tw.kevinzhang.akraft",
-        "tw.kevinzhang.komica.sora",
-        "tw.kevinzhang.komica.twocat",
-        "tw.kevinzhang.nagatoyuki",
-        "tw.kevinzhang.wtako"
+      "signerPins": [],
+      "sources": [
+        {
+          "id": "tw.kevinzhang.komica.twocat",
+          "name": "Twocat",
+          "lang": "zh-TW",
+          "baseUrl": "https://2cat.org"
+        },
+        {
+          "id": "tw.kevinzhang.komica.sora",
+          "name": "Sora",
+          "lang": "zh-TW",
+          "baseUrl": "https://komica1.org"
+        },
+        {
+          "id": "tw.kevinzhang.akraft",
+          "name": "Akraft",
+          "lang": "zh-TW",
+          "baseUrl": "https://www.akraft.net"
+        },
+        {
+          "id": "tw.kevinzhang.nagatoyuki",
+          "name": "Nagatoyuki",
+          "lang": "zh-TW",
+          "baseUrl": "https://eclair.nagatoyuki.org"
+        },
+        {
+          "id": "tw.kevinzhang.wtako",
+          "name": "Wtako",
+          "lang": "zh-TW",
+          "baseUrl": "https://kemono.wtako.net"
+        }
       ]
     },
     "tw.kevinzhang.newshub.extension.komica2": {
       "module": "komica2",
       "name": "NewsHub: Komica2",
       "iconName": "tw.kevinzhang.newshub.extension.komica2.png",
-      "sourceIds": [
-        "tw.kevinzhang.komica2.sora",
-        "tw.kevinzhang.komica2.twocat",
-        "tw.kevinzhang.komica2.zawarudo"
+      "signerPins": [],
+      "sources": [
+        {
+          "id": "tw.kevinzhang.komica2.twocat",
+          "name": "Komica2 Twocat",
+          "lang": "zh-TW",
+          "baseUrl": "https://2cat.org"
+        },
+        {
+          "id": "tw.kevinzhang.komica2.sora",
+          "name": "Komica2 Sora",
+          "lang": "zh-TW",
+          "baseUrl": "https://komica1.org"
+        },
+        {
+          "id": "tw.kevinzhang.komica2.zawarudo",
+          "name": "Komica2 Zawarudo",
+          "lang": "zh-TW",
+          "baseUrl": "https://majeur.zawarudo.org"
+        }
       ]
     },
     "tw.kevinzhang.newshub.extension.mobile01": {
       "module": "mobile01",
       "name": "NewsHub: Mobile01",
       "iconName": "tw.kevinzhang.newshub.extension.mobile01.png",
-      "sourceIds": [
-        "tw.kevinzhang.mobile01"
+      "signerPins": [],
+      "sources": [
+        {
+          "id": "tw.kevinzhang.mobile01",
+          "name": "Mobile01",
+          "lang": "zh-TW",
+          "baseUrl": "https://www.mobile01.com"
+        }
       ]
     },
     "tw.kevinzhang.newshub.extension.ptt": {
       "module": "ptt",
       "name": "NewsHub: PTT",
       "iconName": "tw.kevinzhang.newshub.extension.ptt.png",
-      "sourceIds": [
-        "tw.kevinzhang.newshub.extension.ptt"
+      "signerPins": [],
+      "sources": [
+        {
+          "id": "tw.kevinzhang.newshub.extension.ptt",
+          "name": "PTT 批踢踢實業坊",
+          "lang": "zh-TW",
+          "baseUrl": "https://www.ptt.cc"
+        }
       ]
     }
   }

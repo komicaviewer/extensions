@@ -38,6 +38,12 @@ class AdmissionGateTest(unittest.TestCase):
         self.candidate.mkdir()
         (self.candidate / "apk").mkdir()
         (self.candidate / "icon").mkdir()
+        self.policy_root = root / "policy"
+        self.policy_root.mkdir()
+        self.catalog = copy.deepcopy(CATALOG)
+        for release in self.catalog["releases"].values():
+            release["signerPins"] = [FINGERPRINT]
+        self.write_json(self.policy_root / "admission_policy.json", self.catalog)
         self.aapt = self.write_aapt(root / "aapt", wrong_package=False)
         self.wrong_aapt = self.write_aapt(root / "wrong-aapt", wrong_package=True)
         self.apksigner = self.write_apksigner(root / "apksigner", FINGERPRINT)
@@ -46,7 +52,7 @@ class AdmissionGateTest(unittest.TestCase):
         repo = {
             "name": "NewsHub Extensions",
             "baseUrl": "https://raw.githubusercontent.com/komicaviewer/extensions/main",
-            "signingKeyFingerprint": FINGERPRINT,
+            "signingKeyFingerprint": "0" * 64,
         }
         self.write_json(self.base / "repo.json", repo)
         self.write_json(self.candidate / "repo.json", repo)
@@ -96,49 +102,22 @@ print('Signer #1 certificate SHA-256 digest: {fingerprint}')
 """,
         )
 
-    def registry_source(self, source_id):
-        class_name = "example." + source_id.replace(".", "_") + ".Source"
-        return {
-            "className": class_name,
-            "id": source_id,
-            "name": source_id,
-            "lang": "zh-TW",
-            "baseUrl": "https://example.com/" + source_id,
-        }
-
-    def write_apk(self, package, registry=None, include_classes=True):
+    def write_apk(self, package, legacy_registry=None, include_classes=True):
         release = CATALOG["releases"][package]
         version_code, version_name = VERSIONS[release["module"]]
         apk_name = f"newshub-{release['module']}-v{version_name}.apk"
         apk_path = self.candidate / "apk" / apk_name
-        sources = [self.registry_source(source_id) for source_id in release["sourceIds"]]
-        registry = registry or (
-            {
-                "schemaVersion": 2,
-                "requiredApiVersion": 2,
-                "name": release["name"],
-                "sources": sources,
-            }
-            if release["module"] in {"gamer", "ptt"}
-            else {
-                "schemaVersion": 1,
-                "name": release["name"],
-                "sources": sources,
-            }
-        )
-        class_markers = b"\n".join(
-            source["className"].replace(".", "/").encode("utf-8")
-            for source in registry["sources"]
-        )
         with zipfile.ZipFile(apk_path, "w") as apk:
-            apk.writestr("assets/newshub-extension.json", json.dumps(registry))
-            apk.writestr("classes.dex", class_markers if include_classes else b"dex without Source classes")
-        return apk_name, apk_path, version_code, version_name, registry
+            if legacy_registry is not None:
+                apk.writestr("assets/newshub-extension.json", json.dumps(legacy_registry))
+            if include_classes:
+                apk.writestr("classes.dex", b"fixture dex")
+        return apk_name, apk_path, version_code, version_name
 
     def create_candidate_release(self):
         entries = []
         for package, release in CATALOG["releases"].items():
-            apk_name, apk_path, version_code, version_name, registry = self.write_apk(package)
+            apk_name, apk_path, version_code, version_name = self.write_apk(package)
             icon_path = self.candidate / "icon" / release["iconName"]
             icon_path.write_bytes(b"\x89PNG\r\n\x1a\nfixture")
             entries.append({
@@ -146,14 +125,11 @@ print('Signer #1 certificate SHA-256 digest: {fingerprint}')
                 "name": release["name"],
                 "versionCode": version_code,
                 "versionName": version_name,
-                "lang": "zh-TW",
+                "lang": next(iter({source["lang"] for source in release["sources"]})),
                 "apkName": apk_name,
                 "iconName": release["iconName"],
                 "sha256": hashlib.sha256(apk_path.read_bytes()).hexdigest(),
-                "sources": [
-                    {field: source[field] for field in ("id", "name", "lang", "baseUrl")}
-                    for source in registry["sources"]
-                ],
+                "sources": copy.deepcopy(release["sources"]),
             })
         return entries
 
@@ -164,17 +140,21 @@ print('Signer #1 certificate SHA-256 digest: {fingerprint}')
     def entry(self, package):
         return next(entry for entry in self.entries if entry["pkg"] == package)
 
-    def validate(self, aapt=None, apksigner=None):
+    def validate(self, aapt=None, apksigner=None, policy_root=None):
         validate_distribution(
             self.candidate,
             self.base,
-            POLICY_ROOT,
+            policy_root or self.policy_root,
             aapt or self.aapt,
             apksigner or self.apksigner,
         )
 
-    def test_accepts_exact_seven_apk_thirteen_source_distribution(self):
+    def test_accepts_exact_distribution_with_destination_owned_metadata_and_package_pins(self):
         self.validate()
+
+    def test_production_policy_fails_closed_while_signer_pins_are_unprovisioned(self):
+        with self.assertRaisesRegex(AdmissionError, "production signer pins are unprovisioned"):
+            self.validate(policy_root=POLICY_ROOT)
 
     def test_rejects_missing_gamer(self):
         gamer = "tw.kevinzhang.newshub.extension.gamer"
@@ -211,6 +191,20 @@ print('Signer #1 certificate SHA-256 digest: {fingerprint}')
         with self.assertRaisesRegex(AdmissionError, "APK signer mismatch"):
             self.validate(apksigner=self.wrong_apksigner)
 
+    def test_rejects_signer_not_pinned_for_its_package(self):
+        gamer = "tw.kevinzhang.newshub.extension.gamer"
+        self.catalog["releases"][gamer]["signerPins"] = ["1" * 64]
+        self.write_json(self.policy_root / "admission_policy.json", self.catalog)
+        with self.assertRaisesRegex(AdmissionError, f"APK signer mismatch for {gamer}"):
+            self.validate()
+
+    def test_rejects_missing_package_signer_pin(self):
+        gamer = "tw.kevinzhang.newshub.extension.gamer"
+        self.catalog["releases"][gamer]["signerPins"] = []
+        self.write_json(self.policy_root / "admission_policy.json", self.catalog)
+        with self.assertRaisesRegex(AdmissionError, f"production signer pins are unprovisioned for {gamer}"):
+            self.validate()
+
     def test_rejects_version_downgrade(self):
         gamer = "tw.kevinzhang.newshub.extension.gamer"
         base_index = copy.deepcopy(self.entries)
@@ -233,94 +227,46 @@ print('Signer #1 certificate SHA-256 digest: {fingerprint}')
         with self.assertRaisesRegex(AdmissionError, "unauthorized package removals"):
             self.validate()
 
-    def test_rejects_registry_source_set_mismatch(self):
+    def test_rejects_index_source_set_mismatch(self):
         package = "tw.kevinzhang.newshub.extension.komica"
-        release = CATALOG["releases"][package]
-        registry = {
-            "schemaVersion": 1,
-            "name": release["name"],
-            "sources": [self.registry_source(source_id) for source_id in release["sourceIds"][:-1]],
-        }
-        _, apk_path, _, _, _ = self.write_apk(package, registry=registry)
-        self.entry(package)["sha256"] = hashlib.sha256(apk_path.read_bytes()).hexdigest()
-        self.entry(package)["sources"] = [
-            {field: source[field] for field in ("id", "name", "lang", "baseUrl")}
-            for source in registry["sources"]
-        ]
+        self.entry(package)["sources"] = self.entry(package)["sources"][:-1]
         self.write_candidate_indexes()
         with self.assertRaisesRegex(AdmissionError, "unexpected index Source set"):
             self.validate()
 
-    def test_rejects_registry_class_missing_from_dex(self):
+    def test_rejects_source_metadata_not_owned_by_destination_policy(self):
+        package = "tw.kevinzhang.newshub.extension.komica"
+        self.entry(package)["sources"][0]["baseUrl"] = "https://attacker.example"
+        self.write_candidate_indexes()
+        with self.assertRaisesRegex(AdmissionError, "Source baseUrl differs from destination policy"):
+            self.validate()
+
+    def test_rejects_extra_source_metadata_field(self):
+        package = "tw.kevinzhang.newshub.extension.komica"
+        self.entry(package)["sources"][0]["className"] = "attacker.Source"
+        self.write_candidate_indexes()
+        with self.assertRaisesRegex(AdmissionError, "source fields must be exactly"):
+            self.validate()
+
+    def test_rejects_legacy_apk_registry(self):
         package = "tw.kevinzhang.newshub.extension.komica2"
-        _, apk_path, _, _, _ = self.write_apk(package, include_classes=False)
+        _, apk_path, _, _ = self.write_apk(package, legacy_registry={"sources": []})
         self.entry(package)["sha256"] = hashlib.sha256(apk_path.read_bytes()).hexdigest()
         self.write_candidate_indexes()
-        with self.assertRaisesRegex(AdmissionError, "registry Source class missing from DEX"):
+        with self.assertRaisesRegex(AdmissionError, "forbidden legacy registry"):
             self.validate()
 
-    def test_rejects_future_registry_schema(self):
-        package = "tw.kevinzhang.newshub.extension.gamer"
-        release = CATALOG["releases"][package]
-        registry = {
-            "schemaVersion": 3,
-            "requiredApiVersion": 3,
-            "name": release["name"],
-            "sources": [self.registry_source(source_id) for source_id in release["sourceIds"]],
-        }
-        _, apk_path, _, _, _ = self.write_apk(package, registry=registry)
-        self.entry(package)["sha256"] = hashlib.sha256(apk_path.read_bytes()).hexdigest()
-        self.write_candidate_indexes()
-        with self.assertRaisesRegex(AdmissionError, "unsupported registry schema/API contract"):
-            self.validate()
-
-    def test_rejects_registry_schema_one_with_api_two(self):
-        package = "tw.kevinzhang.newshub.extension.gamer"
-        release = CATALOG["releases"][package]
-        registry = {
-            "schemaVersion": 1,
-            "requiredApiVersion": 2,
-            "name": release["name"],
-            "sources": [self.registry_source(source_id) for source_id in release["sourceIds"]],
-        }
-        _, apk_path, _, _, _ = self.write_apk(package, registry=registry)
-        self.entry(package)["sha256"] = hashlib.sha256(apk_path.read_bytes()).hexdigest()
-        self.write_candidate_indexes()
-        with self.assertRaisesRegex(AdmissionError, "unsupported registry schema/API contract"):
-            self.validate()
-
-    def test_rejects_registry_schema_two_without_api_version(self):
+    def test_rejects_apk_without_dex(self):
         package = "tw.kevinzhang.newshub.extension.ptt"
-        release = CATALOG["releases"][package]
-        registry = {
-            "schemaVersion": 2,
-            "name": release["name"],
-            "sources": [self.registry_source(source_id) for source_id in release["sourceIds"]],
-        }
-        _, apk_path, _, _, _ = self.write_apk(package, registry=registry)
+        _, apk_path, _, _ = self.write_apk(package, include_classes=False)
         self.entry(package)["sha256"] = hashlib.sha256(apk_path.read_bytes()).hexdigest()
         self.write_candidate_indexes()
-        with self.assertRaisesRegex(AdmissionError, "registry requiredApiVersion must be an integer"):
-            self.validate()
-
-    def test_rejects_non_integer_registry_contract_versions(self):
-        package = "tw.kevinzhang.newshub.extension.ptt"
-        release = CATALOG["releases"][package]
-        registry = {
-            "schemaVersion": True,
-            "requiredApiVersion": 2.0,
-            "name": release["name"],
-            "sources": [self.registry_source(source_id) for source_id in release["sourceIds"]],
-        }
-        _, apk_path, _, _, _ = self.write_apk(package, registry=registry)
-        self.entry(package)["sha256"] = hashlib.sha256(apk_path.read_bytes()).hexdigest()
-        self.write_candidate_indexes()
-        with self.assertRaisesRegex(AdmissionError, "registry schemaVersion must be an integer"):
+        with self.assertRaisesRegex(AdmissionError, "APK contains no classes.dex"):
             self.validate()
 
     def test_rejects_candidate_repo_trust_anchor_change(self):
         repo = json.loads((self.candidate / "repo.json").read_text(encoding="utf-8"))
-        repo["signingKeyFingerprint"] = "0" * 64
+        repo["signingKeyFingerprint"] = "1" * 64
         self.write_json(self.candidate / "repo.json", repo)
         with self.assertRaisesRegex(AdmissionError, "candidate changed forbidden paths:.*repo.json"):
             self.validate()
