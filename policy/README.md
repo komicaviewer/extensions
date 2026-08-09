@@ -10,7 +10,8 @@ Candidate changes are allowlisted to `index.json`, `index.min.json`, `apk/*`, an
 mode and symlink changes, so a release PR cannot smuggle workflow, policy, metadata,
 or documentation changes into the destination branch.
 
-The base `policy/admission_policy.json` is the only admission trust anchor. It owns
+The base `policy/admission_policy.json` and its referenced offline `tuf/root.json`
+are the only admission trust anchors. The policy owns
 the exact metadata for every Source and a separate `signerPins` allowlist for every
 package. `repo.json.signingKeyFingerprint` is distribution metadata for legacy
 clients; the gate deliberately does not use that global value to authorize any APK.
@@ -21,6 +22,15 @@ SHA-256 signing-certificate fingerprint through the controlled key-provisioning
 process and pin it under that package before any release can pass. Unit tests inject
 fixture-only pins into a temporary policy; fixture pins must never be copied into the
 production policy.
+
+Repository delivery is additionally threshold-signed with ECDSA P-256/SHA-256.
+The gate verifies the embedded/offline root, unversioned timestamp, versioned
+snapshot and targets metadata, expiry, rollback, exact hashes and lengths, then
+binds every `apk/*.apk` target to package, version, stable signer-lineage root,
+current package-specific signer pins, service class, protocol, policy hash, and
+signed display metadata. Production has `trustedRepository.provisioned=false`
+until the reviewed root and role keys exist, so missing trust material cannot
+fall back to `repo.json` or a global signing certificate.
 
 The policy verifies the exact seven APK / thirteen Source catalog, both indexes,
 every APK and PNG, APK SHA-256, package, version, exact destination-owned Source

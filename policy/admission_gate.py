@@ -13,12 +13,15 @@ import sys
 import zipfile
 from pathlib import Path
 
+from trusted_metadata import TrustedMetadataError, verify_repository
+
 
 LEGACY_REGISTRY_ASSET = "assets/newshub-extension.json"
 APK_NAME_PATTERN = re.compile(r"^newshub-([a-z0-9_-]+)-v(.+)\.apk$")
 PACKAGE_PATTERN = re.compile(r"^[a-zA-Z][a-zA-Z0-9_]*(?:\.[a-zA-Z][a-zA-Z0-9_]*)+$")
 SHA256_PATTERN = re.compile(r"^[0-9a-f]{64}$")
-REQUIRED_SOURCE_FIELDS = ("id", "name", "lang", "baseUrl")
+INDEX_SOURCE_FIELDS = ("id", "name", "lang", "baseUrl")
+POLICY_SOURCE_FIELDS = INDEX_SOURCE_FIELDS + ("service", "protocol", "policyHash")
 MAX_APK_BYTES = 100 * 1024 * 1024
 MAX_ICON_BYTES = 10 * 1024 * 1024
 MAX_DEX_BYTES = 200 * 1024 * 1024
@@ -110,19 +113,24 @@ def inspect_apk_payload(apk: Path) -> None:
         raise AdmissionError(f"invalid APK payload for {apk.name}: {error}") from error
 
 
-def validate_source_list(sources, label: str) -> dict[str, dict]:
+def validate_source_list(sources, label: str, fields=INDEX_SOURCE_FIELDS) -> dict[str, dict]:
     require(isinstance(sources, list) and sources, f"{label} sources must be a non-empty array")
     by_id = {}
     for source in sources:
         require(isinstance(source, dict), f"{label} source must be an object")
-        for field in REQUIRED_SOURCE_FIELDS:
-            require(isinstance(source.get(field), str) and source[field].strip(), f"{label} source {field} missing")
+        for field in fields:
+            if field == "protocol":
+                require(source.get(field) == 1, f"{label} source protocol must equal 1")
+            else:
+                require(isinstance(source.get(field), str) and source[field].strip(), f"{label} source {field} missing")
         require(
-            set(source) == set(REQUIRED_SOURCE_FIELDS),
-            f"{label} source fields must be exactly {REQUIRED_SOURCE_FIELDS}: {source['id']}",
+            set(source) == set(fields),
+            f"{label} source fields must be exactly {fields}: {source['id']}",
         )
         require(source["id"] not in by_id, f"duplicate Source id in {label}: {source['id']}")
         require(source["baseUrl"].startswith("https://"), f"Source baseUrl must use HTTPS: {source['id']}")
+        if "policyHash" in fields:
+            require(SHA256_PATTERN.fullmatch(source["policyHash"]) is not None, f"invalid policyHash: {source['id']}")
         by_id[source["id"]] = source
     return by_id
 
@@ -169,7 +177,33 @@ def tree_snapshot(root: Path) -> dict[str, tuple]:
 
 
 def is_allowed_distribution_path(path: str) -> bool:
-    return path in {"index.json", "index.min.json"} or re.fullmatch(r"(?:apk|icon)/[^/]+", path) is not None
+    return (
+        path in {"index.json", "index.min.json", "metadata/timestamp.json"}
+        or re.fullmatch(r"(?:apk|icon)/[^/]+", path) is not None
+        or re.fullmatch(r"targets/apk/[^/]+\.apk", path) is not None
+        or re.fullmatch(r"metadata/[1-9][0-9]*\.(?:snapshot|targets)\.json", path) is not None
+    )
+
+
+def validate_trusted_target_bindings(targets_signed: dict, entries: dict[str, dict], releases: dict, pins: dict[str, set[str]]) -> None:
+    targets = targets_signed.get("targets")
+    require(isinstance(targets, dict), "trusted targets metadata missing")
+    expected_paths = {f"apk/{entry['apkName']}" for entry in entries.values()}
+    require(set(targets) == expected_paths, "trusted target set is not exact")
+    for package, entry in entries.items():
+        custom = targets[f"apk/{entry['apkName']}"]["custom"]
+        require(custom["packageName"] == package, f"trusted target package mismatch: {package}")
+        require(custom["versionCode"] == entry["versionCode"], f"trusted target versionCode mismatch: {package}")
+        require(custom["versionName"] == entry["versionName"], f"trusted target versionName mismatch: {package}")
+        require(custom["name"] == releases[package]["name"], f"trusted target name mismatch: {package}")
+        require(custom["lang"] == entry["lang"], f"trusted target lang mismatch: {package}")
+        require(set(custom["apkSignerPins"]) == pins[package], f"trusted target signer pins mismatch: {package}")
+        expected_sources = [{
+            "id": source["id"], "service": source["service"],
+            "protocol": source["protocol"], "policyHash": source["policyHash"],
+            "name": source["name"], "lang": source["lang"], "baseUrl": source["baseUrl"],
+        } for source in releases[package]["sources"]]
+        require(custom["sources"] == expected_sources, f"trusted target Source binding mismatch: {package}")
 
 
 def validate_changed_paths(candidate: Path, base: Path) -> None:
@@ -184,7 +218,10 @@ def validate_changed_paths(candidate: Path, base: Path) -> None:
     require(not forbidden_paths, f"candidate changed forbidden paths: {forbidden_paths}")
 
 
-def validate_distribution(candidate: Path, base: Path, policy_root: Path, aapt: str, apksigner: str) -> None:
+def validate_distribution(
+    candidate: Path, base: Path, policy_root: Path, aapt: str, apksigner: str,
+    *, trusted_metadata_verifier=verify_repository,
+) -> None:
     candidate = candidate.resolve()
     base = base.resolve()
     policy_root = policy_root.resolve()
@@ -194,6 +231,8 @@ def validate_distribution(candidate: Path, base: Path, policy_root: Path, aapt: 
     releases = catalog.get("releases")
     require(isinstance(releases, dict) and releases, "release catalog must define releases")
     require(len(releases) == catalog.get("expectedReleaseCount"), "release catalog count is inconsistent")
+    trust = catalog.get("trustedRepository")
+    require(isinstance(trust, dict) and trust.get("provisioned") is True, "production repository trust is unprovisioned")
 
     policy_sources_by_package = {}
     signer_pins_by_package = {}
@@ -201,6 +240,7 @@ def validate_distribution(candidate: Path, base: Path, policy_root: Path, aapt: 
         policy_sources_by_package[package] = validate_source_list(
             release.get("sources"),
             f"admission policy {package}",
+            POLICY_SOURCE_FIELDS,
         )
         pins = release.get("signerPins")
         require(isinstance(pins, list), f"signerPins must be an array for {package}")
@@ -293,7 +333,7 @@ def validate_distribution(candidate: Path, base: Path, policy_root: Path, aapt: 
             seen_source_ids.add(source_id)
             index_source = index_sources[source_id]
             expected_source = expected_sources[source_id]
-            for field in REQUIRED_SOURCE_FIELDS:
+            for field in INDEX_SOURCE_FIELDS:
                 require(
                     index_source[field] == expected_source[field],
                     f"Source {field} differs from destination policy: {source_id}",
@@ -312,6 +352,13 @@ def validate_distribution(candidate: Path, base: Path, policy_root: Path, aapt: 
                 require(entry["sha256"] == previous.get("sha256"), f"APK changed without versionCode bump for {package}")
 
     require(seen_source_ids == expected_source_ids, "candidate Source set is incomplete")
+    try:
+        trusted_targets = trusted_metadata_verifier(
+            policy_root / trust["rootPath"], candidate / "metadata", candidate / "targets",
+        )
+    except (KeyError, TypeError, TrustedMetadataError) as error:
+        raise AdmissionError(f"trusted repository metadata rejected: {error}") from error
+    validate_trusted_target_bindings(trusted_targets, entries, releases, signer_pins_by_package)
     print(
         "Distribution admission passed: "
         f"APKs={len(entries)}, Sources={len(seen_source_ids)}, signerPolicy=per-package",

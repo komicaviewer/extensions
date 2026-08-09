@@ -3,6 +3,10 @@
   "expectedReleaseCount": 7,
   "expectedSourceCount": 13,
   "allowedPackageRemovals": [],
+  "trustedRepository": {
+    "provisioned": false,
+    "rootPath": "tuf/root.json"
+  },
   "releases": {
     "tw.kevinzhang.newshub.extension.eyny": {
       "module": "eyny",
@@ -14,7 +18,10 @@
           "id": "tw.kevinzhang.eyny",
           "name": "EYNY 伊莉討論區",
           "lang": "zh-TW",
-          "baseUrl": "https://eyny.com"
+          "baseUrl": "https://eyny.com",
+          "service": "tw.kevinzhang.newshub.extension.eyny.EynyExtensionService",
+          "protocol": 1,
+          "policyHash": "55d8493383fc9ba611b304aea6f87ad709249f6d2c3ffb94148a91c0c03e5c38"
         }
       ]
     },
@@ -28,7 +35,10 @@
           "id": "tw.kevinzhang.newshub.extension.gamer",
           "name": "Gamer 巴哈姆特",
           "lang": "zh-TW",
-          "baseUrl": "https://forum.gamer.com.tw"
+          "baseUrl": "https://forum.gamer.com.tw",
+          "service": "tw.kevinzhang.newshub.extension.gamer.GamerExtensionService",
+          "protocol": 1,
+          "policyHash": "44c7faba37268bad86cd1db6bcfa69358a413e81a3cc3657d96fa88f2050f4aa"
         }
       ]
     },
@@ -42,7 +52,10 @@
           "id": "tw.kevinzhang.newshub.extension.hackernews",
           "name": "Hacker News",
           "lang": "en",
-          "baseUrl": "https://news.ycombinator.com"
+          "baseUrl": "https://news.ycombinator.com",
+          "service": "tw.kevinzhang.newshub.extension.hackernews.HackerNewsExtensionService",
+          "protocol": 1,
+          "policyHash": "7916aa87fa766710f2cd0b56e41bfa36a7f2c61ef0f92891e2956aff64ef3fa5"
         }
       ]
     },
@@ -56,31 +69,46 @@
           "id": "tw.kevinzhang.komica.twocat",
           "name": "Twocat",
           "lang": "zh-TW",
-          "baseUrl": "https://2cat.org"
+          "baseUrl": "https://2cat.org",
+          "service": "tw.kevinzhang.newshub.extension.komica.TwocatExtensionService",
+          "protocol": 1,
+          "policyHash": "db153a26ef1aebe7bf820365cf4a98a75ab8ff24dae5ff9f692eefd1223f5c61"
         },
         {
           "id": "tw.kevinzhang.komica.sora",
           "name": "Sora",
           "lang": "zh-TW",
-          "baseUrl": "https://komica1.org"
+          "baseUrl": "https://komica1.org",
+          "service": "tw.kevinzhang.newshub.extension.komica.SoraExtensionService",
+          "protocol": 1,
+          "policyHash": "b26b519357aa738070c201224de6504db983de86292337689d19109d321c81df"
         },
         {
           "id": "tw.kevinzhang.akraft",
           "name": "Akraft",
           "lang": "zh-TW",
-          "baseUrl": "https://www.akraft.net"
+          "baseUrl": "https://www.akraft.net",
+          "service": "tw.kevinzhang.newshub.extension.komica.AkraftExtensionService",
+          "protocol": 1,
+          "policyHash": "2db8bd4fb0b7ca6e0a2d03df289480b7c8521ebbf8a1c50be83bad45de08a3d5"
         },
         {
           "id": "tw.kevinzhang.nagatoyuki",
           "name": "Nagatoyuki",
           "lang": "zh-TW",
-          "baseUrl": "https://eclair.nagatoyuki.org"
+          "baseUrl": "https://eclair.nagatoyuki.org",
+          "service": "tw.kevinzhang.newshub.extension.komica.NagatoyukiExtensionService",
+          "protocol": 1,
+          "policyHash": "8bc5bff3501d90bafc9220ac99c10136debb166a9cbacc757f48c715462be6ab"
         },
         {
           "id": "tw.kevinzhang.wtako",
           "name": "Wtako",
           "lang": "zh-TW",
-          "baseUrl": "https://kemono.wtako.net"
+          "baseUrl": "https://kemono.wtako.net",
+          "service": "tw.kevinzhang.newshub.extension.komica.WtakoExtensionService",
+          "protocol": 1,
+          "policyHash": "0a8a01a3cc0e438718522f134c456f0eff91ed1a7d1bafff7b5bdfbd6ec1349d"
         }
       ]
     },
@@ -94,19 +122,28 @@
           "id": "tw.kevinzhang.komica2.twocat",
           "name": "Komica2 Twocat",
           "lang": "zh-TW",
-          "baseUrl": "https://2cat.org"
+          "baseUrl": "https://2cat.org",
+          "service": "tw.kevinzhang.newshub.extension.komica2.TwocatExtensionService",
+          "protocol": 1,
+          "policyHash": "db153a26ef1aebe7bf820365cf4a98a75ab8ff24dae5ff9f692eefd1223f5c61"
         },
         {
           "id": "tw.kevinzhang.komica2.sora",
           "name": "Komica2 Sora",
           "lang": "zh-TW",
-          "baseUrl": "https://komica1.org"
+          "baseUrl": "https://komica1.org",
+          "service": "tw.kevinzhang.newshub.extension.komica2.SoraExtensionService",
+          "protocol": 1,
+          "policyHash": "b26b519357aa738070c201224de6504db983de86292337689d19109d321c81df"
         },
         {
           "id": "tw.kevinzhang.komica2.zawarudo",
           "name": "Komica2 Zawarudo",
           "lang": "zh-TW",
-          "baseUrl": "https://majeur.zawarudo.org"
+          "baseUrl": "https://majeur.zawarudo.org",
+          "service": "tw.kevinzhang.newshub.extension.komica2.ZawarudoExtensionService",
+          "protocol": 1,
+          "policyHash": "4216bdb005a9941ba8dac80f329f3812b02357113fa7adf707ca1a4ea7152a19"
         }
       ]
     },
@@ -120,7 +157,10 @@
           "id": "tw.kevinzhang.mobile01",
           "name": "Mobile01",
           "lang": "zh-TW",
-          "baseUrl": "https://www.mobile01.com"
+          "baseUrl": "https://www.mobile01.com",
+          "service": "tw.kevinzhang.newshub.extension.mobile01.Mobile01ExtensionService",
+          "protocol": 1,
+          "policyHash": "126c66cc51e96db1ab85520b90d702f8876dab5841eef90463e13c69d6ba5196"
         }
       ]
     },
@@ -134,7 +174,10 @@
           "id": "tw.kevinzhang.newshub.extension.ptt",
           "name": "PTT 批踢踢實業坊",
           "lang": "zh-TW",
-          "baseUrl": "https://www.ptt.cc"
+          "baseUrl": "https://www.ptt.cc",
+          "service": "tw.kevinzhang.newshub.extension.ptt.PttExtensionService",
+          "protocol": 1,
+          "policyHash": "55abd09358e1aea13fa214bb1959f28b0701e27a88c6bf7ea566987c972f3750"
         }
       ]
     }

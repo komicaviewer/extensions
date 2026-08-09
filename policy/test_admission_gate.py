@@ -41,6 +41,7 @@ class AdmissionGateTest(unittest.TestCase):
         self.policy_root = root / "policy"
         self.policy_root.mkdir()
         self.catalog = copy.deepcopy(CATALOG)
+        self.catalog["trustedRepository"]["provisioned"] = True
         for release in self.catalog["releases"].values():
             release["signerPins"] = [FINGERPRINT]
         self.write_json(self.policy_root / "admission_policy.json", self.catalog)
@@ -129,7 +130,10 @@ print('Signer #1 certificate SHA-256 digest: {fingerprint}')
                 "apkName": apk_name,
                 "iconName": release["iconName"],
                 "sha256": hashlib.sha256(apk_path.read_bytes()).hexdigest(),
-                "sources": copy.deepcopy(release["sources"]),
+                "sources": [
+                    {key: source[key] for key in ("id", "name", "lang", "baseUrl")}
+                    for source in release["sources"]
+                ],
             })
         return entries
 
@@ -147,14 +151,50 @@ print('Signer #1 certificate SHA-256 digest: {fingerprint}')
             policy_root or self.policy_root,
             aapt or self.aapt,
             apksigner or self.apksigner,
+            trusted_metadata_verifier=lambda *_: self.trusted_targets(),
         )
+
+    def trusted_targets(self):
+        return {"targets": {
+            f"apk/{entry['apkName']}": {
+                "custom": {
+                    "packageName": package,
+                    "versionCode": entry["versionCode"],
+                    "versionName": entry["versionName"],
+                    "name": self.catalog["releases"][package]["name"],
+                    "lang": entry["lang"],
+                    "lineageRootSha256": FINGERPRINT,
+                    "apkSignerPins": sorted(self.catalog["releases"][package]["signerPins"]),
+                    "sources": [{
+                        "id": source["id"],
+                        "service": source["service"],
+                        "protocol": source["protocol"],
+                        "policyHash": source["policyHash"],
+                        "name": source["name"],
+                        "lang": source["lang"],
+                        "baseUrl": source["baseUrl"],
+                    } for source in self.catalog["releases"][package]["sources"]],
+                },
+            }
+            for package, entry in ((entry["pkg"], entry) for entry in self.entries)
+        }}
 
     def test_accepts_exact_distribution_with_destination_owned_metadata_and_package_pins(self):
         self.validate()
 
     def test_production_policy_fails_closed_while_signer_pins_are_unprovisioned(self):
-        with self.assertRaisesRegex(AdmissionError, "production signer pins are unprovisioned"):
+        with self.assertRaisesRegex(AdmissionError, "production repository trust is unprovisioned"):
             self.validate(policy_root=POLICY_ROOT)
+
+    def test_rejects_trusted_target_source_policy_mismatch(self):
+        trusted = self.trusted_targets()
+        target = next(iter(trusted["targets"].values()))
+        target["custom"]["sources"][0]["policyHash"] = "0" * 64
+        with self.assertRaisesRegex(AdmissionError, "trusted target Source binding mismatch"):
+            validate_distribution(
+                self.candidate, self.base, self.policy_root, self.aapt, self.apksigner,
+                trusted_metadata_verifier=lambda *_: trusted,
+            )
 
     def test_rejects_missing_gamer(self):
         gamer = "tw.kevinzhang.newshub.extension.gamer"
