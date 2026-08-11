@@ -58,13 +58,13 @@ The app resolves raw content URLs automatically.
 
 ## Publishing
 
-CI in [extensions-source](https://github.com/komicaviewer/extensions-source)
+GCP Cloud Build in [extensions-source](https://github.com/komicaviewer/extensions-source)
 builds a complete release candidate and opens a pull request in this repository.
 It never pushes `main` directly.
 
-The destination-owned `Distribution admission / verify` check reads candidate
-APKs as untrusted data and requires the exact seven-APK/thirteen-Source contract,
-matching indexes, files, hashes, versions, registries, signing certificate, and
-Source classes. Branch protection admits the pull request only after that check
-passes. A separate push check then verifies the published `main` ref and raw
-download content. There is no scheduled daily audit.
+The isolated publisher reads candidate APKs as untrusted data and requires the
+exact seven-APK/thirteen-Source contract, matching indexes, files, hashes,
+versions, registries, signing certificates, and Source classes before it opens
+the distribution pull request. The short-lived GitHub App token then squash
+merges only the exact validated head SHA. This repository intentionally has no
+GitHub Actions workflows; private build logs and evidence remain in GCP.
