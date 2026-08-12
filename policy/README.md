@@ -1,51 +1,80 @@
-# Distribution admission policy
+# Distribution 發佈准入政策
 
-This directory is the destination-owned trust boundary for release pull requests.
-The `pull_request_target` workflow runs the policy from the current base commit and
-treats the candidate checkout only as untrusted data. Candidate scripts are never
-executed.
+本目錄是 `extensions` destination repository 擁有的信任邊界。候選發佈的
+script、metadata 與 APK 都是不可信資料；驗證時只能執行當前受保護
+`main` 上的 `policy/admission_gate.py` 與其依賴，不得執行候選 branch
+中的程式。
 
-Candidate changes are allowlisted to `index.json`, `index.min.json`, `apk/*`, and
-`icon/*`. The gate compares complete base/candidate tree snapshots, including file
-mode and symlink changes, so a release PR cannot smuggle workflow, policy, metadata,
-or documentation changes into the destination branch.
+## 目前的全 GCP 流程
 
-The base `repo.json` `signingKeyFingerprint` is the APK signing trust anchor, so
-the admission check needs no signing secret. The policy verifies the exact seven
-APK / thirteen Source catalog, both indexes, every APK and PNG, APK SHA-256, package,
-version, registry metadata, registry class presence in DEX, and signing certificate.
-It also rejects version downgrades, same-version APK replacements, and package
-deletions not pre-authorized by the base admission policy.
+Repository 沒有 GitHub Actions workflow。完整流程為：
 
-## Bootstrap and repository settings
+1. `extensions-source` 的 GCP publication build 以七組獨立簽章憑證建置 APK。
+2. Build 在本地生成 distribution tree，確認 catalog、indexes、files、hashes、
+   versions、Source classes 與 signing certificates。
+3. Distribution publisher GitHub App 只把 allowlist 內的 distribution artifacts push 到
+   `automation/extensions-cloudbuild-*` branch，並建立 PR。
+4. 所有 GCP admission 完成後，publisher 對該 PR 的 exact head SHA 寫入
+   `GCP distribution admission / verify` success status。
+5. `main` branch protection 要求該 exact context、`strict=true`/必須跟上最新
+   `main`、PR、linear history、conversation resolution 與無 bypass。只有
+   distribution publisher App 可合併 exact head。
 
-The workflow cannot protect the pull request that first introduces it. Merge this
-bootstrap change after review, then create a branch ruleset for `main`:
+該 status 由 distribution publisher 以 installation token 寫入，不是已刪除的
+GitHub Actions check。Publisher 同時有 Contents write/merge 與 Commit statuses write，
+因此它是對自己剛執行的 GCP admission 自證，不是第二個獨立
+reviewer identity。Branch protection 主要防止其他 identity、未跟上 `main` 或
+沒有 exact status 的 commit 進入。本殘餘風險必須保留在 deployment
+preflight，不得宣稱為獨立 destination approval。
 
-1. Require pull requests and disallow direct pushes.
-2. Require the `Distribution admission / verify` status check.
-3. Require branches to be up to date before merging.
-4. Do not permit the publishing bot or its token to bypass the ruleset.
-5. Enable auto-merge; the publishing identity needs permission to open and update
-   pull requests, but must not have direct-push or ruleset-bypass access.
+在 status context、branch protection 或 App 綁定尚未建立前，Scheduler 與
+publication trigger 必須維持停用。
 
-The upstream publisher should therefore create/update a release PR instead of
-pushing `main`. A fine-grained token needs repository `Contents: read and write`
-and `Pull requests: read and write` for this repository. The destination admission
-workflow itself uses only `contents: read` and `pull-requests: read` and requires no
-new secret.
+## 准入契約
 
-After a merge, `Post-publish verification / verify` independently checks the
-exact `GITHUB_SHA` checkout, confirms `refs/heads/main` still resolves to that SHA,
-and performs six bounded cache-busted reads of raw `main`. It compares both remote
-indexes and every referenced APK/icon with the local commit and always emits a
-GitHub Step Summary. It is intentionally a push check, not the PR required check,
-and there is no scheduled workflow.
+Candidate 只允許修改 `index.json`、`index.min.json`、`apk/*`、`icon/*`、
+受管理的 `metadata/*` 與 `targets/apk/*`。Gate 比對 base/candidate 完整 tree，
+包含 file mode 與 symlink，拒絕把 workflow、policy、repository metadata 或文件
+夾帶進 release PR。
 
-Key rotation or an intentional package removal is a two-step policy operation.
-The admission check deliberately rejects policy changes in release candidate PRs,
-so a maintainer must first use a controlled maintenance window to update the base
-policy (temporarily adjusting the ruleset if necessary), restore the ruleset, and
-only then submit the distribution PR. The publishing identity must never receive
-that maintenance bypass. A candidate distribution PR therefore cannot authorize
-its own signer or deletion.
+`policy/admission_policy.json` 與其引用的 offline `tuf/root.json` 是唯一信任
+anchor。政策包含每個 Source 的 destination-owned metadata，並為每個 package
+維護獨立 `signerPins`。`repo.json.signingKeyFingerprint` 只是舊版 client
+metadata，不能授權 APK。
+
+正式政策在七個 `signerPins` 尚未填入受核准 SHA-256 certificate fingerprint
+時會 fail closed。Unit tests 只對暫存 fixture 注入測試 pin；絕不得複製到
+production policy。
+
+Repository delivery 另以 ECDSA P-256/SHA-256 threshold-signed metadata 保護。Gate
+會驗證 root、timestamp、versioned snapshot/targets、expiry、rollback、hash、length，
+並把每個 APK 綁定 package、version、signer lineage、service class、protocol、
+policy hash 與 Source metadata。`trustedRepository.provisioned=false` 期間一律
+fail closed。
+
+Gate 必須驗證：
+
+- 七個 APK／十三個 Sources 的完整 catalog。
+- `index.json` 與 `index.min.json` 語意一致。
+- 每個 APK、PNG、SHA-256、package、version 與 package-specific signer。
+- Source metadata、service class、protocol 與 DEX payload 的上限/下限。
+- 禁止 legacy `assets/newshub-extension.json`。
+- 禁止 version downgrade、同版本 APK replacement，以及未預先授權的 package/
+  Source 刪除。
+
+## 本機驗證
+
+```bash
+python3 -m unittest discover -s policy -p 'test_*.py' -v
+
+python3 policy/admission_gate.py \
+  --candidate /absolute/candidate-tree \
+  --base /absolute/base-main-tree \
+  --policy-root /absolute/base-main-tree/policy \
+  --aapt /absolute/android-sdk/build-tools/34.0.0/aapt \
+  --apksigner /absolute/android-sdk/build-tools/34.0.0/apksigner
+```
+
+簽章 pin、TUF root/role keys、Source metadata 或 package removal 是兩階段 maintenance
+操作。Release candidate PR 不得修改信任 anchor 來授權自己；必須由
+受控 maintenance change 先進入 base policy，再建立 distribution PR。
