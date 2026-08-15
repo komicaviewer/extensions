@@ -183,19 +183,93 @@ def _check_root_key_material(root_signed: dict, openssl: str) -> None:
             raise TrustedMetadataError(f"root key must use P-256: {keyid}")
 
 
+def _exact_hosts(value: object, relative: str, scope: str, *, allow_empty: bool) -> list[str]:
+    minimum = 0 if allow_empty else 1
+    if (
+        not isinstance(value, list) or len(value) not in range(minimum, 33)
+        or value != sorted(set(value))
+        or any(not isinstance(host, str) or EXACT_HOST.fullmatch(host) is None for host in value)
+    ):
+        raise TrustedMetadataError(f"invalid target Source {scope} exact hosts: {relative}")
+    return value
+
+
+def _check_network_operation(operation: object, relative: str) -> None:
+    if not isinstance(operation, dict) or set(operation) != {
+        "name", "methods", "pathPrefixes", "credentialed",
+    }:
+        raise TrustedMetadataError(f"invalid target Source operations: {relative}")
+    methods = operation["methods"]
+    prefixes = operation["pathPrefixes"]
+    if (
+        operation["name"] != "source_read"
+        or not isinstance(methods, list) or not methods or len(methods) > 2
+        or methods != sorted(set(methods)) or any(method not in {"GET", "HEAD"} for method in methods)
+        or not isinstance(prefixes, list) or not prefixes or len(prefixes) > 32
+        or prefixes != sorted(set(prefixes))
+        or any(
+            not isinstance(prefix, str) or not prefix.startswith("/") or len(prefix) > 256
+            or any(ord(character) < 0x20 or ord(character) == 0x7f for character in prefix)
+            for prefix in prefixes
+        )
+        or not isinstance(operation["credentialed"], bool)
+    ):
+        raise TrustedMetadataError(f"invalid target Source operations: {relative}")
+
+
 def _check_source_network_policy(source: dict, relative: str) -> None:
     policy = source.get("networkPolicy")
-    if not isinstance(policy, dict) or set(policy) != {
-        "exactHosts", "operations", "namedCapabilities",
-    }:
+    if not isinstance(policy, dict):
         raise TrustedMetadataError(f"invalid target Source networkPolicy: {relative}")
-    hosts = policy["exactHosts"]
-    if (
-        not isinstance(hosts, list) or not hosts or len(hosts) > 32
-        or hosts != sorted(set(hosts))
-        or any(not isinstance(host, str) or EXACT_HOST.fullmatch(host) is None for host in hosts)
-    ):
-        raise TrustedMetadataError(f"invalid target Source exact hosts: {relative}")
+    if "schemaVersion" not in policy:
+        if set(policy) != {"exactHosts", "operations", "namedCapabilities"}:
+            raise TrustedMetadataError(f"invalid target Source networkPolicy: {relative}")
+        hosts = _exact_hosts(policy["exactHosts"], relative, "request", allow_empty=False)
+        operations = policy["operations"]
+        if not isinstance(operations, list) or len(operations) != 1:
+            raise TrustedMetadataError(f"invalid target Source operations: {relative}")
+        _check_network_operation(operations[0], relative)
+        expected_operation = {
+            "name": "source_read",
+            "methods": ["GET", "HEAD"],
+            "pathPrefixes": ["/"],
+            "credentialed": True,
+        }
+        if operations != [expected_operation]:
+            raise TrustedMetadataError(f"invalid target Source operations: {relative}")
+        all_hosts = set(hosts)
+    else:
+        if set(policy) != {
+            "schemaVersion", "request", "resource", "external", "auth", "namedCapabilities",
+        } or policy["schemaVersion"] != 2 or isinstance(policy["schemaVersion"], bool):
+            raise TrustedMetadataError(f"invalid target Source networkPolicy: {relative}")
+        for scope in ("request", "resource", "external", "auth"):
+            value = policy[scope]
+            expected = {"rules"} if scope == "request" else {"exactHosts"}
+            if not isinstance(value, dict) or set(value) != expected:
+                raise TrustedMetadataError(f"invalid target Source {scope} policy: {relative}")
+        rules = policy["request"]["rules"]
+        if not isinstance(rules, list) or len(rules) not in range(1, 33):
+            raise TrustedMetadataError(f"invalid target Source request rules: {relative}")
+        request_hosts: set[str] = set()
+        canonical_rules: set[bytes] = set()
+        for rule in rules:
+            if not isinstance(rule, dict) or set(rule) != {"exactHosts", "operation"}:
+                raise TrustedMetadataError(f"invalid target Source request rule: {relative}")
+            rule_hosts = _exact_hosts(rule["exactHosts"], relative, "request", allow_empty=False)
+            _check_network_operation(rule["operation"], relative)
+            encoded_rule = canonical_json(rule)
+            if encoded_rule in canonical_rules:
+                raise TrustedMetadataError(f"duplicate target Source request rule: {relative}")
+            canonical_rules.add(encoded_rule)
+            request_hosts.update(rule_hosts)
+        scoped_hosts = {
+            scope: _exact_hosts(policy[scope]["exactHosts"], relative, scope, allow_empty=True)
+            for scope in ("resource", "external", "auth")
+        }
+        all_hosts = request_hosts.union(*(set(hosts) for hosts in scoped_hosts.values()))
+        if len(all_hosts) > 32:
+            raise TrustedMetadataError(f"target Source exact hosts exceed Host limit: {relative}")
     base = urlsplit(source["baseUrl"])
     try:
         base_port = base.port
@@ -204,18 +278,9 @@ def _check_source_network_policy(source: dict, relative: str) -> None:
     if (
         base.scheme != "https" or not base.hostname or base.username is not None
         or base.password is not None or base_port not in (None, 443)
-        or base.hostname.lower() not in hosts
+        or base.hostname.lower() not in all_hosts
     ):
         raise TrustedMetadataError(f"target Source baseUrl is outside exact hosts: {relative}")
-    operations = policy["operations"]
-    expected_operation = {
-        "name": "source_read",
-        "methods": ["GET", "HEAD"],
-        "pathPrefixes": ["/"],
-        "credentialed": True,
-    }
-    if operations != [expected_operation]:
-        raise TrustedMetadataError(f"invalid target Source operations: {relative}")
     capabilities = policy["namedCapabilities"]
     if (
         not isinstance(capabilities, list) or not capabilities or len(capabilities) > 16
