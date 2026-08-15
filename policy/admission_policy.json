@@ -81,7 +81,7 @@
           "baseUrl": "https://komica1.org",
           "service": "tw.kevinzhang.newshub.extension.komica.SoraExtensionService",
           "protocol": 1,
-          "policyHash": "b26b519357aa738070c201224de6504db983de86292337689d19109d321c81df"
+          "policyHash": "413217b5c534dc871a339ffebaa6e9466d761bf799ff7b943f933fbaaaa6d436"
         },
         {
           "id": "tw.kevinzhang.akraft",
@@ -134,7 +134,7 @@
           "baseUrl": "https://komica1.org",
           "service": "tw.kevinzhang.newshub.extension.komica2.SoraExtensionService",
           "protocol": 1,
-          "policyHash": "b26b519357aa738070c201224de6504db983de86292337689d19109d321c81df"
+          "policyHash": "413217b5c534dc871a339ffebaa6e9466d761bf799ff7b943f933fbaaaa6d436"
         },
         {
           "id": "tw.kevinzhang.komica2.zawarudo",
