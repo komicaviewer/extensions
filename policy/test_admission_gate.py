@@ -170,6 +170,14 @@ print('Signer #1 certificate SHA-256 digest: {fingerprint}')
                         "service": source["service"],
                         "protocol": source["protocol"],
                         "policyHash": source["policyHash"],
+                        "networkPolicy": {
+                            "exactHosts": [source["baseUrl"].split("//", 1)[1].split("/", 1)[0]],
+                            "operations": [{
+                                "name": "source_read", "methods": ["GET", "HEAD"],
+                                "pathPrefixes": ["/"], "credentialed": True,
+                            }],
+                            "namedCapabilities": ["resource_read"],
+                        },
                         "name": source["name"],
                         "lang": source["lang"],
                         "baseUrl": source["baseUrl"],

@@ -11,9 +11,23 @@ import datetime as dt
 import hashlib
 import hmac
 import json
+import re
 import subprocess
 import tempfile
 from pathlib import Path
+from urllib.parse import urlsplit
+
+
+EXACT_HOST = re.compile(
+    r"^(?=.{1,253}$)(?![0-9.]+$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)*"
+    r"[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$"
+)
+KNOWN_CAPABILITIES = {
+    "external_link",
+    "eyny_challenge_proof",
+    "ptt_adult_consent_status",
+    "resource_read",
+}
 
 
 class TrustedMetadataError(ValueError):
@@ -169,6 +183,50 @@ def _check_root_key_material(root_signed: dict, openssl: str) -> None:
             raise TrustedMetadataError(f"root key must use P-256: {keyid}")
 
 
+def _check_source_network_policy(source: dict, relative: str) -> None:
+    policy = source.get("networkPolicy")
+    if not isinstance(policy, dict) or set(policy) != {
+        "exactHosts", "operations", "namedCapabilities",
+    }:
+        raise TrustedMetadataError(f"invalid target Source networkPolicy: {relative}")
+    hosts = policy["exactHosts"]
+    if (
+        not isinstance(hosts, list) or not hosts or len(hosts) > 32
+        or hosts != sorted(set(hosts))
+        or any(not isinstance(host, str) or EXACT_HOST.fullmatch(host) is None for host in hosts)
+    ):
+        raise TrustedMetadataError(f"invalid target Source exact hosts: {relative}")
+    base = urlsplit(source["baseUrl"])
+    try:
+        base_port = base.port
+    except ValueError as error:
+        raise TrustedMetadataError(f"invalid target Source baseUrl port: {relative}") from error
+    if (
+        base.scheme != "https" or not base.hostname or base.username is not None
+        or base.password is not None or base_port not in (None, 443)
+        or base.hostname.lower() not in hosts
+    ):
+        raise TrustedMetadataError(f"target Source baseUrl is outside exact hosts: {relative}")
+    operations = policy["operations"]
+    expected_operation = {
+        "name": "source_read",
+        "methods": ["GET", "HEAD"],
+        "pathPrefixes": ["/"],
+        "credentialed": True,
+    }
+    if operations != [expected_operation]:
+        raise TrustedMetadataError(f"invalid target Source operations: {relative}")
+    capabilities = policy["namedCapabilities"]
+    if (
+        not isinstance(capabilities, list) or not capabilities or len(capabilities) > 16
+        or capabilities != sorted(set(capabilities))
+        or any(value not in KNOWN_CAPABILITIES for value in capabilities)
+    ):
+        raise TrustedMetadataError(f"invalid target Source capabilities: {relative}")
+    if sha256_bytes(canonical_json(policy)) != source["policyHash"]:
+        raise TrustedMetadataError(f"target Source networkPolicy hash mismatch: {relative}")
+
+
 def _check_target_custom(custom: object, relative: str) -> None:
     required = {
         "packageName", "versionCode", "versionName", "name", "lang", "lineageRootSha256",
@@ -199,7 +257,7 @@ def _check_target_custom(custom: object, relative: str) -> None:
     seen: set[str] = set()
     for source in sources:
         if not isinstance(source, dict) or set(source) != {
-            "id", "service", "protocol", "policyHash", "name", "lang", "baseUrl",
+            "id", "service", "protocol", "policyHash", "networkPolicy", "name", "lang", "baseUrl",
         }:
             raise TrustedMetadataError(f"invalid target Source metadata: {relative}")
         source_id = source.get("id")
@@ -218,6 +276,7 @@ def _check_target_custom(custom: object, relative: str) -> None:
             or not isinstance(source.get("baseUrl"), str) or not source["baseUrl"].startswith("https://")
         ):
             raise TrustedMetadataError(f"invalid target Source display metadata: {relative}")
+        _check_source_network_policy(source, relative)
         seen.add(source_id)
 
 
