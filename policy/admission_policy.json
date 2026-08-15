@@ -4,7 +4,7 @@
   "expectedSourceCount": 13,
   "allowedPackageRemovals": [],
   "trustedRepository": {
-    "provisioned": false,
+    "provisioned": true,
     "rootPath": "tuf/root.json"
   },
   "releases": {
@@ -12,7 +12,7 @@
       "module": "eyny",
       "name": "NewsHub: EYNY 伊莉討論區",
       "iconName": "tw.kevinzhang.newshub.extension.eyny.png",
-      "signerPins": [],
+      "signerPins": ["3df4717435423d5ba7adfed43a22a6e18bbeadc8d509d0bea94d82c7b0f2998d"],
       "sources": [
         {
           "id": "tw.kevinzhang.eyny",
@@ -29,7 +29,7 @@
       "module": "gamer",
       "name": "NewsHub: Gamer 巴哈姆特",
       "iconName": "tw.kevinzhang.newshub.extension.gamer.png",
-      "signerPins": [],
+      "signerPins": ["3df4717435423d5ba7adfed43a22a6e18bbeadc8d509d0bea94d82c7b0f2998d"],
       "sources": [
         {
           "id": "tw.kevinzhang.newshub.extension.gamer",
@@ -46,7 +46,7 @@
       "module": "hackernews",
       "name": "NewsHub: Hacker News",
       "iconName": "tw.kevinzhang.newshub.extension.hackernews.png",
-      "signerPins": [],
+      "signerPins": ["3df4717435423d5ba7adfed43a22a6e18bbeadc8d509d0bea94d82c7b0f2998d"],
       "sources": [
         {
           "id": "tw.kevinzhang.newshub.extension.hackernews",
@@ -63,7 +63,7 @@
       "module": "komica",
       "name": "NewsHub: Komica",
       "iconName": "tw.kevinzhang.newshub.extension.komica.png",
-      "signerPins": [],
+      "signerPins": ["3df4717435423d5ba7adfed43a22a6e18bbeadc8d509d0bea94d82c7b0f2998d"],
       "sources": [
         {
           "id": "tw.kevinzhang.komica.twocat",
@@ -116,7 +116,7 @@
       "module": "komica2",
       "name": "NewsHub: Komica2",
       "iconName": "tw.kevinzhang.newshub.extension.komica2.png",
-      "signerPins": [],
+      "signerPins": ["3df4717435423d5ba7adfed43a22a6e18bbeadc8d509d0bea94d82c7b0f2998d"],
       "sources": [
         {
           "id": "tw.kevinzhang.komica2.twocat",
@@ -151,7 +151,7 @@
       "module": "mobile01",
       "name": "NewsHub: Mobile01",
       "iconName": "tw.kevinzhang.newshub.extension.mobile01.png",
-      "signerPins": [],
+      "signerPins": ["3df4717435423d5ba7adfed43a22a6e18bbeadc8d509d0bea94d82c7b0f2998d"],
       "sources": [
         {
           "id": "tw.kevinzhang.mobile01",
@@ -168,7 +168,7 @@
       "module": "ptt",
       "name": "NewsHub: PTT",
       "iconName": "tw.kevinzhang.newshub.extension.ptt.png",
-      "signerPins": [],
+      "signerPins": ["3df4717435423d5ba7adfed43a22a6e18bbeadc8d509d0bea94d82c7b0f2998d"],
       "sources": [
         {
           "id": "tw.kevinzhang.newshub.extension.ptt",

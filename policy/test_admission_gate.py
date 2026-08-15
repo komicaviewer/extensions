@@ -182,9 +182,8 @@ print('Signer #1 certificate SHA-256 digest: {fingerprint}')
     def test_accepts_exact_distribution_with_destination_owned_metadata_and_package_pins(self):
         self.validate()
 
-    def test_production_policy_fails_closed_while_signer_pins_are_unprovisioned(self):
-        with self.assertRaisesRegex(AdmissionError, "production repository trust is unprovisioned"):
-            self.validate(policy_root=POLICY_ROOT)
+    def test_production_policy_is_provisioned_and_accepts_exact_distribution(self):
+        self.validate(policy_root=POLICY_ROOT)
 
     def test_rejects_trusted_target_source_policy_mismatch(self):
         trusted = self.trusted_targets()
