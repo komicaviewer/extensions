@@ -21,7 +21,7 @@
           "baseUrl": "https://eyny.com",
           "service": "tw.kevinzhang.newshub.extension.eyny.EynyExtensionService",
           "protocol": 1,
-          "policyHash": "55d8493383fc9ba611b304aea6f87ad709249f6d2c3ffb94148a91c0c03e5c38"
+          "policyHash": "5206b958aa3148385f5ac40a3c9c51c3dd539d47505557ccabde8e845453279a"
         }
       ]
     },
@@ -38,7 +38,7 @@
           "baseUrl": "https://forum.gamer.com.tw",
           "service": "tw.kevinzhang.newshub.extension.gamer.GamerExtensionService",
           "protocol": 1,
-          "policyHash": "44c7faba37268bad86cd1db6bcfa69358a413e81a3cc3657d96fa88f2050f4aa"
+          "policyHash": "d83562d39c756463f9e5d1ed8028cfde5ba53abb821d5f3c2e45ec71bcefc5dc"
         }
       ]
     },
@@ -55,7 +55,7 @@
           "baseUrl": "https://news.ycombinator.com",
           "service": "tw.kevinzhang.newshub.extension.hackernews.HackerNewsExtensionService",
           "protocol": 1,
-          "policyHash": "7916aa87fa766710f2cd0b56e41bfa36a7f2c61ef0f92891e2956aff64ef3fa5"
+          "policyHash": "87ecb81f9a175c91143a1400997454dbe552f83c437154c5cc89558209654c24"
         }
       ]
     },
@@ -72,7 +72,7 @@
           "baseUrl": "https://2cat.org",
           "service": "tw.kevinzhang.newshub.extension.komica.TwocatExtensionService",
           "protocol": 1,
-          "policyHash": "db153a26ef1aebe7bf820365cf4a98a75ab8ff24dae5ff9f692eefd1223f5c61"
+          "policyHash": "950e16defa0919fd7aa9eca0ac7929c12a28734bb3b36d6676205bdfe8bcf762"
         },
         {
           "id": "tw.kevinzhang.komica.sora",
@@ -81,7 +81,7 @@
           "baseUrl": "https://komica1.org",
           "service": "tw.kevinzhang.newshub.extension.komica.SoraExtensionService",
           "protocol": 1,
-          "policyHash": "413217b5c534dc871a339ffebaa6e9466d761bf799ff7b943f933fbaaaa6d436"
+          "policyHash": "bb1286c07671815139a69081e1356b865e1236e789f6b62511e6a1d9b568eb7f"
         },
         {
           "id": "tw.kevinzhang.akraft",
@@ -90,7 +90,7 @@
           "baseUrl": "https://www.akraft.net",
           "service": "tw.kevinzhang.newshub.extension.komica.AkraftExtensionService",
           "protocol": 1,
-          "policyHash": "2db8bd4fb0b7ca6e0a2d03df289480b7c8521ebbf8a1c50be83bad45de08a3d5"
+          "policyHash": "2d2d298c9c47ec1d631c73e40010a4f3582059577d2bc805b3c536a483d7433a"
         },
         {
           "id": "tw.kevinzhang.nagatoyuki",
@@ -99,7 +99,7 @@
           "baseUrl": "https://eclair.nagatoyuki.org",
           "service": "tw.kevinzhang.newshub.extension.komica.NagatoyukiExtensionService",
           "protocol": 1,
-          "policyHash": "8bc5bff3501d90bafc9220ac99c10136debb166a9cbacc757f48c715462be6ab"
+          "policyHash": "eef264703bf2d8e8daa00b1882b71f6c82a2b2bd3d7b7e596fbcb44a5cadfc14"
         },
         {
           "id": "tw.kevinzhang.wtako",
@@ -108,7 +108,7 @@
           "baseUrl": "https://kemono.wtako.net",
           "service": "tw.kevinzhang.newshub.extension.komica.WtakoExtensionService",
           "protocol": 1,
-          "policyHash": "0a8a01a3cc0e438718522f134c456f0eff91ed1a7d1bafff7b5bdfbd6ec1349d"
+          "policyHash": "92741d5558334282df9cc240010ea3ef4a141ced4a5a135311802241f13b2c00"
         }
       ]
     },
@@ -125,7 +125,7 @@
           "baseUrl": "https://2cat.org",
           "service": "tw.kevinzhang.newshub.extension.komica2.TwocatExtensionService",
           "protocol": 1,
-          "policyHash": "db153a26ef1aebe7bf820365cf4a98a75ab8ff24dae5ff9f692eefd1223f5c61"
+          "policyHash": "692ca4fc6068b2aaec7375ab7e819d51c7a218f92402b77568ea9fd1ffd317a5"
         },
         {
           "id": "tw.kevinzhang.komica2.sora",
@@ -134,7 +134,7 @@
           "baseUrl": "https://komica1.org",
           "service": "tw.kevinzhang.newshub.extension.komica2.SoraExtensionService",
           "protocol": 1,
-          "policyHash": "413217b5c534dc871a339ffebaa6e9466d761bf799ff7b943f933fbaaaa6d436"
+          "policyHash": "2e9f6788904a5f7546292b947af18d65569e2b4152c2a1b0f4aa2952e71da70f"
         },
         {
           "id": "tw.kevinzhang.komica2.zawarudo",
@@ -143,7 +143,7 @@
           "baseUrl": "https://majeur.zawarudo.org",
           "service": "tw.kevinzhang.newshub.extension.komica2.ZawarudoExtensionService",
           "protocol": 1,
-          "policyHash": "4216bdb005a9941ba8dac80f329f3812b02357113fa7adf707ca1a4ea7152a19"
+          "policyHash": "585d25644328939cbbed7183690c09749500806832831d34c82632527b3880f6"
         }
       ]
     },
@@ -160,7 +160,7 @@
           "baseUrl": "https://www.mobile01.com",
           "service": "tw.kevinzhang.newshub.extension.mobile01.Mobile01ExtensionService",
           "protocol": 1,
-          "policyHash": "126c66cc51e96db1ab85520b90d702f8876dab5841eef90463e13c69d6ba5196"
+          "policyHash": "1518d8988d341cfdae51de7ca17535726d840f94cb52c3ba09d80d164804eee7"
         }
       ]
     },
@@ -177,7 +177,7 @@
           "baseUrl": "https://www.ptt.cc",
           "service": "tw.kevinzhang.newshub.extension.ptt.PttExtensionService",
           "protocol": 1,
-          "policyHash": "55abd09358e1aea13fa214bb1959f28b0701e27a88c6bf7ea566987c972f3750"
+          "policyHash": "974635280b574bbf7ba5c4e48ce6eb7fa4ffc8f9b59dde456322b37037ef3edc"
         }
       ]
     }
