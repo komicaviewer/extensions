@@ -82,7 +82,13 @@ class TrustedMetadataFixture:
         (self.metadata / filename).write_bytes(raw)
         return raw
 
-    def write_chain(self, *, timestamp_expiry: str = "2031-01-01T00:00:00Z") -> None:
+    def write_chain(
+        self,
+        *,
+        timestamp_expiry: str = "2031-01-01T00:00:00Z",
+        network_policy: dict | None = None,
+        base_url: str = "https://api.example.test/v1/",
+    ) -> None:
         all_keyids = [keyid for ids in self.keyids.values() for keyid in ids]
         root_signed = {
             "_type": "root", "specVersion": "1.0", "version": 1,
@@ -98,14 +104,21 @@ class TrustedMetadataFixture:
         self.root_path.write_bytes(canonical_json(root_envelope))
 
         target_value = (self.targets / "apk" / "fixture.apk").read_bytes()
-        network_policy = {
-            "exactHosts": ["example.test"],
-            "operations": [{
-                "name": "source_read", "methods": ["GET", "HEAD"],
-                "pathPrefixes": ["/"], "credentialed": True,
-            }],
-            "namedCapabilities": ["resource_read"],
-        }
+        if network_policy is None:
+            network_policy = {
+                "schemaVersion": 2,
+                "request": {"rules": [{
+                    "exactHosts": ["api.example.test"],
+                    "operation": {
+                        "name": "source_read", "methods": ["GET"],
+                        "pathPrefixes": ["/v1/"], "credentialed": False,
+                    },
+                }]},
+                "resource": {"exactHosts": ["images.example.test"]},
+                "external": {"exactHosts": ["www.example.test"]},
+                "auth": {"exactHosts": ["login.example.test"]},
+                "namedCapabilities": ["external_link", "resource_read"],
+            }
         targets_signed = {
             "_type": "targets", "specVersion": "1.0", "version": 1,
             "expires": "2031-01-01T00:00:00Z",
@@ -123,7 +136,7 @@ class TrustedMetadataFixture:
                             "protocol": 1,
                             "policyHash": hashlib.sha256(canonical_json(network_policy)).hexdigest(),
                             "networkPolicy": network_policy,
-                            "name": "Fixture Source", "lang": "en", "baseUrl": "https://example.test",
+                            "name": "Fixture Source", "lang": "en", "baseUrl": base_url,
                         }],
                     },
                 },
@@ -179,6 +192,18 @@ class TrustedMetadataTest(unittest.TestCase):
         result = self.verify()
         self.assertEqual("tw.example.bundle", result["targets"]["apk/fixture.apk"]["custom"]["packageName"])
 
+    def test_accepts_legacy_v1_network_policy(self):
+        legacy_policy = {
+            "exactHosts": ["example.test"],
+            "operations": [{
+                "name": "source_read", "methods": ["GET", "HEAD"],
+                "pathPrefixes": ["/"], "credentialed": True,
+            }],
+            "namedCapabilities": ["resource_read"],
+        }
+        self.fixture.write_chain(network_policy=legacy_policy, base_url="https://example.test")
+        self.assertEqual("tw.example.bundle", self.verify()["targets"]["apk/fixture.apk"]["custom"]["packageName"])
+
     def test_rejects_wrong_or_insufficient_targets_signer(self):
         envelope = json.loads((self.fixture.metadata / "1.targets.json").read_text())
         envelope["signatures"] = envelope["signatures"][:1]
@@ -218,8 +243,8 @@ class TrustedMetadataTest(unittest.TestCase):
         path = self.fixture.metadata / "1.targets.json"
         envelope = json.loads(path.read_text())
         source = next(iter(envelope["signed"]["targets"].values()))["custom"]["sources"][0]
-        source["networkPolicy"]["exactHosts"].append("other.example.test")
-        source["networkPolicy"]["exactHosts"].sort()
+        source["networkPolicy"]["resource"]["exactHosts"].append("other.example.test")
+        source["networkPolicy"]["resource"]["exactHosts"].sort()
         path.write_bytes(canonical_json(self.fixture.envelope(envelope["signed"], "targets")))
         self._rewrite_snapshot_for_targets(path.read_bytes())
         with self.assertRaisesRegex(TrustedMetadataError, "networkPolicy hash mismatch"):
@@ -227,8 +252,8 @@ class TrustedMetadataTest(unittest.TestCase):
 
     def test_rejects_wildcard_post_and_unknown_capability(self):
         mutations = (
-            lambda policy: policy.__setitem__("exactHosts", ["*.example.test"]),
-            lambda policy: policy["operations"][0].__setitem__("methods", ["POST"]),
+            lambda policy: policy["request"]["rules"][0].__setitem__("exactHosts", ["*.example.test"]),
+            lambda policy: policy["request"]["rules"][0]["operation"].__setitem__("methods", ["POST"]),
             lambda policy: policy.__setitem__("namedCapabilities", ["unknown"]),
         )
         for mutate in mutations:
