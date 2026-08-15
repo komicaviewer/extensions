@@ -198,9 +198,14 @@ def validate_trusted_target_bindings(targets_signed: dict, entries: dict[str, di
         require(custom["name"] == releases[package]["name"], f"trusted target name mismatch: {package}")
         require(custom["lang"] == entry["lang"], f"trusted target lang mismatch: {package}")
         require(set(custom["apkSignerPins"]) == pins[package], f"trusted target signer pins mismatch: {package}")
+        target_sources = {
+            source["id"]: source for source in custom["sources"]
+            if isinstance(source, dict) and isinstance(source.get("id"), str)
+        }
         expected_sources = [{
             "id": source["id"], "service": source["service"],
             "protocol": source["protocol"], "policyHash": source["policyHash"],
+            "networkPolicy": target_sources.get(source["id"], {}).get("networkPolicy"),
             "name": source["name"], "lang": source["lang"], "baseUrl": source["baseUrl"],
         } for source in releases[package]["sources"]]
         require(custom["sources"] == expected_sources, f"trusted target Source binding mismatch: {package}")

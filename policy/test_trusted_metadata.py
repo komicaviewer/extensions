@@ -98,6 +98,14 @@ class TrustedMetadataFixture:
         self.root_path.write_bytes(canonical_json(root_envelope))
 
         target_value = (self.targets / "apk" / "fixture.apk").read_bytes()
+        network_policy = {
+            "exactHosts": ["example.test"],
+            "operations": [{
+                "name": "source_read", "methods": ["GET", "HEAD"],
+                "pathPrefixes": ["/"], "credentialed": True,
+            }],
+            "namedCapabilities": ["resource_read"],
+        }
         targets_signed = {
             "_type": "targets", "specVersion": "1.0", "version": 1,
             "expires": "2031-01-01T00:00:00Z",
@@ -112,7 +120,9 @@ class TrustedMetadataFixture:
                         "apkSignerPins": ["1" * 64],
                         "sources": [{
                             "id": "tw.example.source", "service": "tw.example.SourceService",
-                            "protocol": 1, "policyHash": "2" * 64,
+                            "protocol": 1,
+                            "policyHash": hashlib.sha256(canonical_json(network_policy)).hexdigest(),
+                            "networkPolicy": network_policy,
                             "name": "Fixture Source", "lang": "en", "baseUrl": "https://example.test",
                         }],
                     },
@@ -153,6 +163,18 @@ class TrustedMetadataTest(unittest.TestCase):
             **kwargs,
         )
 
+    def _rewrite_snapshot_for_targets(self, targets_raw: bytes) -> None:
+        snapshot_path = self.fixture.metadata / "1.snapshot.json"
+        snapshot = json.loads(snapshot_path.read_text())
+        snapshot["signed"]["meta"]["targets.json"] = self.fixture.descriptor(targets_raw)
+        snapshot_raw = self.fixture.write(
+            "snapshot", self.fixture.envelope(snapshot["signed"], "snapshot")
+        )
+        timestamp_path = self.fixture.metadata / "timestamp.json"
+        timestamp = json.loads(timestamp_path.read_text())
+        timestamp["signed"]["meta"]["snapshot.json"] = self.fixture.descriptor(snapshot_raw)
+        self.fixture.write("timestamp", self.fixture.envelope(timestamp["signed"], "timestamp"))
+
     def test_accepts_threshold_signed_chain_and_bound_target(self):
         result = self.verify()
         self.assertEqual("tw.example.bundle", result["targets"]["apk/fixture.apk"]["custom"]["packageName"])
@@ -191,6 +213,38 @@ class TrustedMetadataTest(unittest.TestCase):
         (self.fixture.targets / "apk" / "fixture.apk").write_bytes(b"tampered")
         with self.assertRaisesRegex(TrustedMetadataError, "target mix-match"):
             self.verify()
+
+    def test_rejects_network_policy_hash_mismatch(self):
+        path = self.fixture.metadata / "1.targets.json"
+        envelope = json.loads(path.read_text())
+        source = next(iter(envelope["signed"]["targets"].values()))["custom"]["sources"][0]
+        source["networkPolicy"]["exactHosts"].append("other.example.test")
+        source["networkPolicy"]["exactHosts"].sort()
+        path.write_bytes(canonical_json(self.fixture.envelope(envelope["signed"], "targets")))
+        self._rewrite_snapshot_for_targets(path.read_bytes())
+        with self.assertRaisesRegex(TrustedMetadataError, "networkPolicy hash mismatch"):
+            self.verify()
+
+    def test_rejects_wildcard_post_and_unknown_capability(self):
+        mutations = (
+            lambda policy: policy.__setitem__("exactHosts", ["*.example.test"]),
+            lambda policy: policy["operations"][0].__setitem__("methods", ["POST"]),
+            lambda policy: policy.__setitem__("namedCapabilities", ["unknown"]),
+        )
+        for mutate in mutations:
+            with self.subTest(mutate=mutate):
+                self.fixture.write_chain()
+                path = self.fixture.metadata / "1.targets.json"
+                envelope = json.loads(path.read_text())
+                source = next(iter(envelope["signed"]["targets"].values()))["custom"]["sources"][0]
+                mutate(source["networkPolicy"])
+                source["policyHash"] = hashlib.sha256(
+                    canonical_json(source["networkPolicy"])
+                ).hexdigest()
+                path.write_bytes(canonical_json(self.fixture.envelope(envelope["signed"], "targets")))
+                self._rewrite_snapshot_for_targets(path.read_bytes())
+                with self.assertRaisesRegex(TrustedMetadataError, "(exact hosts|operations|capabilities)"):
+                    self.verify()
 
     def test_rejects_snapshot_targets_mix_match(self):
         envelope = json.loads((self.fixture.metadata / "1.targets.json").read_text())
