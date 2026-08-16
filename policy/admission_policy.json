@@ -21,7 +21,7 @@
           "baseUrl": "https://eyny.com",
           "service": "tw.kevinzhang.newshub.extension.eyny.EynyExtensionService",
           "protocol": 1,
-          "policyHash": "5206b958aa3148385f5ac40a3c9c51c3dd539d47505557ccabde8e845453279a"
+          "policyHash": "4e5ea185423a9c166ff220d802b6d90ec72900608eb501e7a2755765fc68aae0"
         }
       ]
     },
