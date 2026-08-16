@@ -2,12 +2,12 @@
   {
     "pkg": "tw.kevinzhang.newshub.extension.eyny",
     "name": "NewsHub: EYNY 伊莉討論區",
-    "versionCode": 3,
-    "versionName": "0.1.2",
+    "versionCode": 4,
+    "versionName": "0.1.3",
     "lang": "zh-TW",
-    "apkName": "newshub-eyny-v0.1.2.apk",
+    "apkName": "newshub-eyny-v0.1.3.apk",
     "iconName": "tw.kevinzhang.newshub.extension.eyny.png",
-    "sha256": "f58cacf9108c5c81a0a6d277b91492bcf29551734f954a6adc7f8a4d5ccccab8",
+    "sha256": "978396e051c72dcaaf17c738c5e5c45b24baaf497e17145d6dfc094ab2a7e772",
     "sources": [
       {
         "id": "tw.kevinzhang.eyny",
@@ -20,12 +20,12 @@
   {
     "pkg": "tw.kevinzhang.newshub.extension.gamer",
     "name": "NewsHub: Gamer 巴哈姆特",
-    "versionCode": 7,
-    "versionName": "0.0.7",
+    "versionCode": 8,
+    "versionName": "0.0.8",
     "lang": "zh-TW",
-    "apkName": "newshub-gamer-v0.0.7.apk",
+    "apkName": "newshub-gamer-v0.0.8.apk",
     "iconName": "tw.kevinzhang.newshub.extension.gamer.png",
-    "sha256": "201c982107cc76a4142812392c9c7864cd8bc1a6c32587d212ca2f51531c3d99",
+    "sha256": "730ae6a34275bff9cfee069527bb885832f88356ac56b911cd1230ec60886c6b",
     "sources": [
       {
         "id": "tw.kevinzhang.newshub.extension.gamer",
@@ -38,12 +38,12 @@
   {
     "pkg": "tw.kevinzhang.newshub.extension.hackernews",
     "name": "NewsHub: Hacker News",
-    "versionCode": 3,
-    "versionName": "0.1.2",
+    "versionCode": 4,
+    "versionName": "0.1.3",
     "lang": "en",
-    "apkName": "newshub-hackernews-v0.1.2.apk",
+    "apkName": "newshub-hackernews-v0.1.3.apk",
     "iconName": "tw.kevinzhang.newshub.extension.hackernews.png",
-    "sha256": "9414916cbaab5c3e7ffb7c5dbb5d72d848cccd4c6f69878bd21b130983a51c8d",
+    "sha256": "3f1602d899804fd09b1b327aaed10c3f79a9c19084df9aa2704234691c5ef776",
     "sources": [
       {
         "id": "tw.kevinzhang.newshub.extension.hackernews",
@@ -56,12 +56,12 @@
   {
     "pkg": "tw.kevinzhang.newshub.extension.komica",
     "name": "NewsHub: Komica",
-    "versionCode": 7,
-    "versionName": "0.3.4",
+    "versionCode": 8,
+    "versionName": "0.3.5",
     "lang": "zh-TW",
-    "apkName": "newshub-komica-v0.3.4.apk",
+    "apkName": "newshub-komica-v0.3.5.apk",
     "iconName": "tw.kevinzhang.newshub.extension.komica.png",
-    "sha256": "7580b0b62226d7012cf3331a42d26fe2b3289b50b311e82151c6c43043bdd901",
+    "sha256": "af47e9338dd164a583b3293f72adc9d4a6f2c15cc9a4c07f48e0df3c8d785b51",
     "sources": [
       {
         "id": "tw.kevinzhang.komica.twocat",
@@ -98,12 +98,12 @@
   {
     "pkg": "tw.kevinzhang.newshub.extension.komica2",
     "name": "NewsHub: Komica2",
-    "versionCode": 8,
-    "versionName": "0.4.4",
+    "versionCode": 9,
+    "versionName": "0.4.5",
     "lang": "zh-TW",
-    "apkName": "newshub-komica2-v0.4.4.apk",
+    "apkName": "newshub-komica2-v0.4.5.apk",
     "iconName": "tw.kevinzhang.newshub.extension.komica2.png",
-    "sha256": "d6b770d89ad09535d89b954c0acf1f39af5d5514871a6afdf6bc4c29278eb910",
+    "sha256": "93248043b79d24cec92145d7d66a865a592d2a2bf9ab669cbbf5f4cb18f74e48",
     "sources": [
       {
         "id": "tw.kevinzhang.komica2.twocat",
@@ -128,12 +128,12 @@
   {
     "pkg": "tw.kevinzhang.newshub.extension.mobile01",
     "name": "NewsHub: Mobile01",
-    "versionCode": 4,
-    "versionName": "0.1.3",
+    "versionCode": 5,
+    "versionName": "0.1.4",
     "lang": "zh-TW",
-    "apkName": "newshub-mobile01-v0.1.3.apk",
+    "apkName": "newshub-mobile01-v0.1.4.apk",
     "iconName": "tw.kevinzhang.newshub.extension.mobile01.png",
-    "sha256": "d02d04b7e058d209e932f2b642bd4ac69c956fcbf2b4948f7ca6eea0d06e7195",
+    "sha256": "c81176a5c38ff22fd53a3c9f34daa060a85907e9176d7a1f88ad8b46f2e9583f",
     "sources": [
       {
         "id": "tw.kevinzhang.mobile01",
@@ -146,12 +146,12 @@
   {
     "pkg": "tw.kevinzhang.newshub.extension.ptt",
     "name": "NewsHub: PTT",
-    "versionCode": 6,
-    "versionName": "0.4.2",
+    "versionCode": 7,
+    "versionName": "0.4.3",
     "lang": "zh-TW",
-    "apkName": "newshub-ptt-v0.4.2.apk",
+    "apkName": "newshub-ptt-v0.4.3.apk",
     "iconName": "tw.kevinzhang.newshub.extension.ptt.png",
-    "sha256": "09289ee16b595c1bd53f46c496d854cc4fe9ca1766d7e6ab571c7b94076f5dd5",
+    "sha256": "6cda47c78ab9e60bf4c483f5ea49f46da3c83d0053d793cc9e71a6df5480ec2d",
     "sources": [
       {
         "id": "tw.kevinzhang.newshub.extension.ptt",
