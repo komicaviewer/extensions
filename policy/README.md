@@ -37,10 +37,14 @@ Candidate 只允許修改 `index.json`、`index.min.json`、`apk/*`、`icon/*`�
 包含 file mode 與 symlink，拒絕把 workflow、policy、repository metadata 或文件
 夾帶進 release PR。
 
-`policy/admission_policy.json` 與其引用的 offline `tuf/root.json` 是唯一信任
+`policy/admission_policy.json` 與其引用的 offline `tuf/root.json` 是官方發佈的信任
 anchor。政策包含每個 Source 的 destination-owned metadata，並為每個 package
 維護獨立 `signerPins`。`repo.json.signingKeyFingerprint` 只是舊版 client
 metadata，不能授權 APK。
+
+目前 NewsHub client 只使用 threshold-signed metadata 與 `targets/apk/*`。`repo.json`、
+`index.json`、`index.min.json` 與 `apk/*` 只保留給官方 producer/admission 流程，
+不是第三方 repository contract。
 
 正式政策在七個 `signerPins` 尚未填入受核准 SHA-256 certificate fingerprint
 時會 fail closed。Unit tests 只對暫存 fixture 注入測試 pin；絕不得複製到
@@ -61,6 +65,15 @@ Gate 必須驗證：
 - 禁止 legacy `assets/newshub-extension.json`。
 - 禁止 version downgrade、同版本 APK replacement，以及未預先授權的 package/
   Source 刪除。
+
+每個 Source 的 `protocol` 必須是 `2`。Protocol 2 policy maintenance 與 signed
+distribution 是兩個步驟：先合併 destination-owned policy，不代表可以發佈；必須再由
+受控 production TUF keys 產生版本遞增且內容相符的 targets、snapshot 與 timestamp。
+兩步之間 admission 預期維持 fail closed。
+
+新版 targets 的 package `custom` 可用 `acceptedArtifacts` 明確授權最多兩個舊 APK；
+每筆都必須精確綁定較小的 `versionCode`、1–64 MiB 的 `length` 與小寫 SHA-256。
+NewsHub 不會沿用未出現在目前已驗簽 metadata 的本機歷史；刪除該筆就是立即撤銷。
 
 ## 本機驗證
 

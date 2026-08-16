@@ -28,6 +28,8 @@ KNOWN_CAPABILITIES = {
     "ptt_adult_consent_status",
     "resource_read",
 }
+MAX_APK_BYTES = 64 * 1024 * 1024
+MAX_ACCEPTED_ARTIFACTS = 2
 
 
 class TrustedMetadataError(ValueError):
@@ -297,12 +299,38 @@ def _check_target_custom(custom: object, relative: str) -> None:
         "packageName", "versionCode", "versionName", "name", "lang", "lineageRootSha256",
         "apkSignerPins", "sources",
     }
-    if not isinstance(custom, dict) or set(custom) != required:
+    allowed = required | {"acceptedArtifacts"}
+    if not isinstance(custom, dict) or not required.issubset(custom) or not set(custom).issubset(allowed):
         raise TrustedMetadataError(f"invalid target custom metadata: {relative}")
     if not isinstance(custom["packageName"], str) or not custom["packageName"]:
         raise TrustedMetadataError(f"invalid target packageName: {relative}")
     if not isinstance(custom["versionCode"], int) or isinstance(custom["versionCode"], bool) or custom["versionCode"] < 1:
         raise TrustedMetadataError(f"invalid target versionCode: {relative}")
+    accepted = custom.get("acceptedArtifacts", [])
+    if not isinstance(accepted, list) or len(accepted) > MAX_ACCEPTED_ARTIFACTS:
+        raise TrustedMetadataError(f"invalid accepted artifacts: {relative}")
+    accepted_versions: set[int] = set()
+    accepted_triples: set[tuple[int, int, str]] = set()
+    for artifact in accepted:
+        if not isinstance(artifact, dict) or set(artifact) != {"versionCode", "length", "sha256"}:
+            raise TrustedMetadataError(f"invalid accepted artifact: {relative}")
+        version = artifact["versionCode"]
+        length = artifact["length"]
+        digest = artifact["sha256"]
+        if (
+            not isinstance(version, int) or isinstance(version, bool)
+            or version < 1 or version >= custom["versionCode"]
+            or not isinstance(length, int) or isinstance(length, bool)
+            or length < 1 or length > MAX_APK_BYTES
+            or not isinstance(digest, str) or len(digest) != 64
+            or any(character not in "0123456789abcdef" for character in digest)
+        ):
+            raise TrustedMetadataError(f"invalid accepted artifact: {relative}")
+        triple = (version, length, digest)
+        if version in accepted_versions or triple in accepted_triples:
+            raise TrustedMetadataError(f"duplicate accepted artifact: {relative}")
+        accepted_versions.add(version)
+        accepted_triples.add(triple)
     if not isinstance(custom["versionName"], str) or not custom["versionName"]:
         raise TrustedMetadataError(f"invalid target versionName: {relative}")
     if not isinstance(custom["name"], str) or not custom["name"] or not isinstance(custom["lang"], str):
@@ -330,7 +358,7 @@ def _check_target_custom(custom: object, relative: str) -> None:
             raise TrustedMetadataError(f"invalid or duplicate target Source id: {relative}")
         if not isinstance(source.get("service"), str) or not source["service"]:
             raise TrustedMetadataError(f"invalid target Source service: {relative}")
-        if source.get("protocol") != 1:
+        if source.get("protocol") != 2:
             raise TrustedMetadataError(f"unsupported target Source protocol: {relative}")
         policy_hash = source.get("policyHash")
         if not isinstance(policy_hash, str) or len(policy_hash) != 64 or any(c not in "0123456789abcdef" for c in policy_hash):
