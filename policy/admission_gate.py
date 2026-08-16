@@ -120,7 +120,7 @@ def validate_source_list(sources, label: str, fields=INDEX_SOURCE_FIELDS) -> dic
         require(isinstance(source, dict), f"{label} source must be an object")
         for field in fields:
             if field == "protocol":
-                require(source.get(field) == 1, f"{label} source protocol must equal 1")
+                require(source.get(field) == 2, f"{label} source protocol must equal 2")
             else:
                 require(isinstance(source.get(field), str) and source[field].strip(), f"{label} source {field} missing")
         require(

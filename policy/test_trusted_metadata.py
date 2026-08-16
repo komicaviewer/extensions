@@ -127,13 +127,13 @@ class TrustedMetadataFixture:
                     "length": len(target_value),
                     "hashes": {"sha256": hashlib.sha256(target_value).hexdigest()},
                     "custom": {
-                        "packageName": "tw.example.bundle", "versionCode": 1, "versionName": "1.0",
+                        "packageName": "tw.example.bundle", "versionCode": 3, "versionName": "3.0",
                         "name": "Fixture", "lang": "en",
                         "lineageRootSha256": "1" * 64,
                         "apkSignerPins": ["1" * 64],
                         "sources": [{
                             "id": "tw.example.source", "service": "tw.example.SourceService",
-                            "protocol": 1,
+                            "protocol": 2,
                             "policyHash": hashlib.sha256(canonical_json(network_policy)).hexdigest(),
                             "networkPolicy": network_policy,
                             "name": "Fixture Source", "lang": "en", "baseUrl": base_url,
@@ -191,6 +191,51 @@ class TrustedMetadataTest(unittest.TestCase):
     def test_accepts_threshold_signed_chain_and_bound_target(self):
         result = self.verify()
         self.assertEqual("tw.example.bundle", result["targets"]["apk/fixture.apk"]["custom"]["packageName"])
+
+    def test_accepts_bounded_signed_previous_artifact(self):
+        path = self.fixture.metadata / "1.targets.json"
+        envelope = json.loads(path.read_text())
+        custom = next(iter(envelope["signed"]["targets"].values()))["custom"]
+        custom["acceptedArtifacts"] = [{
+            "versionCode": 2,
+            "length": 1024,
+            "sha256": "a" * 64,
+        }]
+        path.write_bytes(canonical_json(self.fixture.envelope(envelope["signed"], "targets")))
+        self._rewrite_snapshot_for_targets(path.read_bytes())
+
+        result = self.verify()
+        self.assertEqual([2], [
+            artifact["versionCode"]
+            for artifact in result["targets"]["apk/fixture.apk"]["custom"]["acceptedArtifacts"]
+        ])
+
+    def test_rejects_invalid_signed_previous_artifacts(self):
+        invalid_values = (
+            [{"versionCode": 3, "length": 1024, "sha256": "a" * 64}],
+            [{"versionCode": 2, "length": 0, "sha256": "a" * 64}],
+            [{"versionCode": 2, "length": 1024, "sha256": "A" * 64}],
+            [
+                {"versionCode": 2, "length": 1024, "sha256": "a" * 64},
+                {"versionCode": 2, "length": 2048, "sha256": "b" * 64},
+            ],
+            [
+                {"versionCode": 1, "length": 1024, "sha256": "a" * 64},
+                {"versionCode": 2, "length": 1024, "sha256": "b" * 64},
+                {"versionCode": 2, "length": 1024, "sha256": "c" * 64},
+            ],
+        )
+        for accepted in invalid_values:
+            with self.subTest(accepted=accepted):
+                self.fixture.write_chain()
+                path = self.fixture.metadata / "1.targets.json"
+                envelope = json.loads(path.read_text())
+                custom = next(iter(envelope["signed"]["targets"].values()))["custom"]
+                custom["acceptedArtifacts"] = accepted
+                path.write_bytes(canonical_json(self.fixture.envelope(envelope["signed"], "targets")))
+                self._rewrite_snapshot_for_targets(path.read_bytes())
+                with self.assertRaisesRegex(TrustedMetadataError, "accepted artifact"):
+                    self.verify()
 
     def test_accepts_legacy_v1_network_policy(self):
         legacy_policy = {
