@@ -20,12 +20,12 @@
   {
     "pkg": "tw.kevinzhang.newshub.extension.gamer",
     "name": "NewsHub: Gamer 巴哈姆特",
-    "versionCode": 11,
-    "versionName": "0.0.11",
+    "versionCode": 12,
+    "versionName": "0.0.12",
     "lang": "zh-TW",
-    "apkName": "newshub-gamer-v0.0.11.apk",
+    "apkName": "newshub-gamer-v0.0.12.apk",
     "iconName": "tw.kevinzhang.newshub.extension.gamer.png",
-    "sha256": "09f8baf2785cb00b8a3647908106c43354e9588b19f9f533cec56e139fe6c1cf",
+    "sha256": "ed59b1a9c424fe397f9b23373cc08e504ac7008d4109d93777b4dbb93f1c3818",
     "sources": [
       {
         "id": "tw.kevinzhang.newshub.extension.gamer",
