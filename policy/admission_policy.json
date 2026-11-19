@@ -81,7 +81,7 @@
           "baseUrl": "https://komica1.org",
           "service": "tw.kevinzhang.newshub.extension.komica.SoraExtensionService",
           "protocol": 2,
-          "policyHash": "bb1286c07671815139a69081e1356b865e1236e789f6b62511e6a1d9b568eb7f"
+          "policyHash": "114604b2aaa52b81b28f2351a712ca7a3d77a82173ac3400cf701099dd3b1255"
         },
         {
           "id": "tw.kevinzhang.akraft",
@@ -160,7 +160,7 @@
           "baseUrl": "https://www.mobile01.com",
           "service": "tw.kevinzhang.newshub.extension.mobile01.Mobile01ExtensionService",
           "protocol": 2,
-          "policyHash": "1518d8988d341cfdae51de7ca17535726d840f94cb52c3ba09d80d164804eee7"
+          "policyHash": "6d5f1c025d40a396d73b793ce4a3ff0a23f9495531b7163d2d271b7c5f9e0cdf"
         }
       ]
     },
