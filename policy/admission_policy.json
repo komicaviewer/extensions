@@ -125,7 +125,7 @@
           "baseUrl": "https://2cat.org",
           "service": "tw.kevinzhang.newshub.extension.komica2.TwocatExtensionService",
           "protocol": 2,
-          "policyHash": "692ca4fc6068b2aaec7375ab7e819d51c7a218f92402b77568ea9fd1ffd317a5"
+          "policyHash": "f01538a6417e0632004f3a08c6cc1800e9acc84be0dc261ecf98195633a0ec42"
         },
         {
           "id": "tw.kevinzhang.komica2.sora",
