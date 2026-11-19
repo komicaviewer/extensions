@@ -2,12 +2,12 @@
   {
     "pkg": "tw.kevinzhang.newshub.extension.eyny",
     "name": "NewsHub: EYNY 伊莉討論區",
-    "versionCode": 7,
-    "versionName": "0.1.6",
+    "versionCode": 8,
+    "versionName": "0.1.7",
     "lang": "zh-TW",
-    "apkName": "newshub-eyny-v0.1.6.apk",
+    "apkName": "newshub-eyny-v0.1.7.apk",
     "iconName": "tw.kevinzhang.newshub.extension.eyny.png",
-    "sha256": "8e9a56dddce4ef3ba7fea73e6bb5555ae58cb513a889cefa972a3f5966da52d9",
+    "sha256": "5e1ce8bbf611d051f72e97af64aa02fcd926112064b84b8925c131c21d689abe",
     "sources": [
       {
         "id": "tw.kevinzhang.eyny",
@@ -20,12 +20,12 @@
   {
     "pkg": "tw.kevinzhang.newshub.extension.gamer",
     "name": "NewsHub: Gamer 巴哈姆特",
-    "versionCode": 12,
-    "versionName": "0.0.12",
+    "versionCode": 13,
+    "versionName": "0.0.13",
     "lang": "zh-TW",
-    "apkName": "newshub-gamer-v0.0.12.apk",
+    "apkName": "newshub-gamer-v0.0.13.apk",
     "iconName": "tw.kevinzhang.newshub.extension.gamer.png",
-    "sha256": "ed59b1a9c424fe397f9b23373cc08e504ac7008d4109d93777b4dbb93f1c3818",
+    "sha256": "307df3080ca6a0812914b33ef40599a8196f804b08612ff4ba34082393201548",
     "sources": [
       {
         "id": "tw.kevinzhang.newshub.extension.gamer",
@@ -128,12 +128,12 @@
   {
     "pkg": "tw.kevinzhang.newshub.extension.mobile01",
     "name": "NewsHub: Mobile01",
-    "versionCode": 7,
-    "versionName": "0.1.6",
+    "versionCode": 8,
+    "versionName": "0.1.7",
     "lang": "zh-TW",
-    "apkName": "newshub-mobile01-v0.1.6.apk",
+    "apkName": "newshub-mobile01-v0.1.7.apk",
     "iconName": "tw.kevinzhang.newshub.extension.mobile01.png",
-    "sha256": "f2e0347569c20e8780b430af1fff889211b6cf839b5598b98cf200e030e75f1c",
+    "sha256": "44c1fae8027ad44a5a9738516ca75feeae9a55cca973f972b1a07e8d3dbbf1ec",
     "sources": [
       {
         "id": "tw.kevinzhang.mobile01",
